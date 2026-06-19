@@ -10,6 +10,7 @@
         "NorthStar.World",
         "NorthStar.Character",
         "NorthStar.Data",
+        "NorthStar.Audio",
         "Unity.InputSystem"
     ],
     "includePlatforms": [

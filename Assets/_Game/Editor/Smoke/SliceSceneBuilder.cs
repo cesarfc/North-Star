@@ -1,4 +1,5 @@
 #if UNITY_EDITOR
+using NorthStar.Audio;
 using NorthStar.Character;
 using NorthStar.Inventory;
 using NorthStar.Player;
@@ -59,6 +60,12 @@ public static class SliceSceneBuilder
         var gm = new GameObject("GameManager");
         gm.AddComponent<GameManager>();
         gm.AddComponent<SmokeBootstrap>();
+
+        // Audio service (Audio module): pooled SFX + zone-music auto-crossfade. It self-subscribes
+        // to ZoneEnteredEvent, so simply existing in the scene makes the ZoneGate trigger music.
+        // Clip sets are empty for now — the wiring is silent until SFX/music assets are registered.
+        var audioGo = new GameObject("AudioManager");
+        var audioManager = audioGo.AddComponent<AudioManager>();
 
         // Day/Night cycle (fast time scale so the HUD clock visibly ticks in the demo)
         var dnGo = new GameObject("DayNightCycle");
@@ -183,6 +190,12 @@ public static class SliceSceneBuilder
         WireRef(hud, "_stats", stats);
         WireRef(hud, "_inventory", inventory);
         WireRef(hud, "_dayNight", dayNight);
+
+        // SFX glue (NorthStar.Game): plays pickup/battle SFX off ItemAddedEvent/BattleStartedEvent
+        // through the AudioManager above. Silent until matching clipIds are registered.
+        var sfxGo = new GameObject("SliceSfx");
+        var sliceSfx = sfxGo.AddComponent<SliceSfx>();
+        WireRef(sliceSfx, "_audioManager", audioManager);
 
         if (!AssetDatabase.IsValidFolder(SceneDir))
             AssetDatabase.CreateFolder("Assets/_Game", "Scenes");
