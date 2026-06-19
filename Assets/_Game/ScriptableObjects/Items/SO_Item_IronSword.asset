@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2ad3c7beac9e94fc586a57db6dfb656d, type: 3}
+  m_Name: SO_Item_IronSword
+  m_EditorClassIdentifier:
+  itemId: weapon-iron-sword
+  displayName: Iron Sword
+  description: A dependable arming sword of forged iron. Balanced and sharp.
+  itemType: 0
+  buyPrice: 200
+  sellPrice: 80
+  isStackable: 0
+  maxStackSize: 1
+  icon: {fileID: 0}
