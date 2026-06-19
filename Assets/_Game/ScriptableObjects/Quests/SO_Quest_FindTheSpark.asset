@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  # PLACEHOLDER GUID for QuestData.cs — Unity assigns the real script GUID when it
+  # first imports Assets/_Game/ScriptableObjects/QuestData.cs and generates its .meta.
+  # If the script shows as "missing" in the Inspector, re-drag QuestData onto Script.
+  m_Script: {fileID: 11500000, guid: d74d8d8772154be6836e181b9cd48c0a, type: 3}
+  m_Name: SO_Quest_FindTheSpark
+  m_EditorClassIdentifier:
+  questId: quest-find-the-spark
+  displayName: The Dying Spark
+  description: "The hearthfire at the heart of Northwatch has gone cold. Speak with
+    Elder Vane, then gather three embers from the old shrines before the last light
+    fades."
+  prerequisiteQuestIds: []
+  objectives:
+  - objectiveId: talk-to-elder-vane
+    description: "Speak with Elder Vane in the longhouse."
+    isOptional: 0
+  - objectiveId: gather-three-embers
+    description: "Recover three embers from the wayside shrines."
+    isOptional: 0
+  - objectiveId: light-the-wayfarer-lantern
+    description: "Optional: light the wayfarer's lantern to reveal a shortcut."
+    isOptional: 1
+  rewardItems: []
+  rewardGold: 50
+  rewardExp: 120
