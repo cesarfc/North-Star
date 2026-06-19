@@ -14,36 +14,52 @@ public static class EventBus
     /// <summary>
     /// Subscribe a handler to receive events of type T.
     /// Always call Unsubscribe in OnDestroy to prevent memory leaks.
+    /// Null handlers are ignored.
     /// </summary>
     public static void Subscribe<T>(Action<T> handler)
     {
-        var type = typeof(T);
-        if (!_handlers.ContainsKey(type))
-            _handlers[type] = new List<Delegate>();
+        if (handler == null) return;
 
-        _handlers[type].Add(handler);
+        var type = typeof(T);
+        if (!_handlers.TryGetValue(type, out var list))
+        {
+            list = new List<Delegate>();
+            _handlers[type] = list;
+        }
+
+        list.Add(handler);
     }
 
     /// <summary>
-    /// Unsubscribe a previously registered handler.
+    /// Unsubscribe a previously registered handler. Safe to call even if the
+    /// handler was never subscribed. Null handlers are ignored.
     /// </summary>
     public static void Unsubscribe<T>(Action<T> handler)
     {
+        if (handler == null) return;
+
         var type = typeof(T);
-        if (_handlers.ContainsKey(type))
-            _handlers[type].Remove(handler);
+        if (_handlers.TryGetValue(type, out var list))
+        {
+            list.Remove(handler);
+            if (list.Count == 0)
+                _handlers.Remove(type);
+        }
     }
 
     /// <summary>
-    /// Publish an event to all subscribers. Fired synchronously.
+    /// Publish an event to all subscribers, synchronously and in subscription order.
+    /// Each handler is invoked inside its own try/catch so one throwing subscriber
+    /// cannot prevent the remaining subscribers from receiving the event.
     /// </summary>
     public static void Publish<T>(T eventData)
     {
         var type = typeof(T);
-        if (!_handlers.ContainsKey(type)) return;
+        if (!_handlers.TryGetValue(type, out var list) || list.Count == 0) return;
 
-        // Copy list to avoid mutation during iteration
-        var handlers = new List<Delegate>(_handlers[type]);
+        // Copy the list so a handler that subscribes/unsubscribes during dispatch
+        // does not mutate the collection we are iterating.
+        var handlers = list.ToArray();
         foreach (var handler in handlers)
         {
             try
@@ -52,6 +68,7 @@ public static class EventBus
             }
             catch (Exception e)
             {
+                // Isolate the failure: log it and continue notifying the rest.
                 Debug.LogError($"[EventBus] Exception in handler for {type.Name}: {e}");
             }
         }
