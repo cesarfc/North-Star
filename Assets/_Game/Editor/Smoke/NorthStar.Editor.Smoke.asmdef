@@ -5,6 +5,9 @@
         "NorthStar.Core",
         "NorthStar.Game",
         "NorthStar.Player",
+        "NorthStar.Inventory",
+        "NorthStar.Landscape",
+        "NorthStar.Data",
         "Unity.InputSystem"
     ],
     "includePlatforms": [

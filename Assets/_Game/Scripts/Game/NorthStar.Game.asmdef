@@ -2,7 +2,11 @@
     "name": "NorthStar.Game",
     "rootNamespace": "",
     "references": [
-        "NorthStar.Core"
+        "NorthStar.Core",
+        "NorthStar.Data",
+        "NorthStar.Player",
+        "NorthStar.Inventory",
+        "NorthStar.Landscape"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

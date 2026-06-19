@@ -8,4 +8,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/_Game/Scenes/SCN_Smoke.unity
     guid: fa3105002005d4ed8afde1d2253c98ae
+  - enabled: 1
+    path: Assets/_Game/Scenes/SCN_VerticalSlice.unity
+    guid: 616ca7c6c3c2643dc96b98521486e546
   m_configObjects: {}
