@@ -2,6 +2,7 @@
     "name": "NorthStar.Core.Tests",
     "rootNamespace": "",
     "references": [
+        "NorthStar.Core",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],

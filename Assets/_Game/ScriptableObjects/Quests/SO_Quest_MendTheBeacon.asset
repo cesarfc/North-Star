@@ -12,7 +12,7 @@ MonoBehaviour:
   # PLACEHOLDER GUID for QuestData.cs — Unity assigns the real script GUID when it
   # first imports Assets/_Game/ScriptableObjects/QuestData.cs and generates its .meta.
   # If the script shows as "missing" in the Inspector, re-drag QuestData onto Script.
-  m_Script: {fileID: 11500000, guid: d74d8d8772154be6836e181b9cd48c0a, type: 3}
+  m_Script: {fileID: 11500000, guid: fa2d43d069caa4c24994f5d0cf8cc895, type: 3}
   m_Name: SO_Quest_MendTheBeacon
   m_EditorClassIdentifier:
   questId: quest-mend-the-beacon

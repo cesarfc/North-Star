@@ -43,8 +43,8 @@ public struct PlayerGoldChangedEvent
 
 public struct BattleStartedEvent
 {
-    public CombatUnit[] allies;
-    public CombatUnit[] enemies;
+    public ICombatant[] allies;
+    public ICombatant[] enemies;
 }
 
 public struct BattleEndedEvent
@@ -54,7 +54,7 @@ public struct BattleEndedEvent
 
 public struct UnitDiedEvent
 {
-    public CombatUnit unit;
+    public ICombatant unit;
     public bool wasAlly;
 }
 

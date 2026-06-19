@@ -5,11 +5,16 @@ using UnityEngine;
 /// Represents any unit in combat — player characters and enemies alike.
 /// Attach to a prefab. Stats are set by the Battle setup code before StartBattle is called.
 /// </summary>
-public class CombatUnit : MonoBehaviour
+public class CombatUnit : MonoBehaviour, ICombatant
 {
     [Header("Identity")]
     public string unitName;
     public bool   isPlayerControlled;
+
+    // ICombatant implementation (abstraction consumed by Core events + lock-on)
+    public string    UnitName           => unitName;
+    public bool      IsPlayerControlled => isPlayerControlled;
+    public Transform Anchor             => transform;
 
     [Header("Base Stats")]
     public int baseMaxHP  = 100;

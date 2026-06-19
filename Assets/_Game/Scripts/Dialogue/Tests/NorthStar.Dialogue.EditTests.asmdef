@@ -2,9 +2,11 @@
     "name": "NorthStar.Dialogue.EditTests",
     "rootNamespace": "",
     "references": [
+        "NorthStar.Dialogue",
+        "NorthStar.Core",
+        "NorthStar.Data",
         "UnityEngine.TestRunner",
-        "UnityEditor.TestRunner",
-        "Assembly-CSharp"
+        "UnityEditor.TestRunner"
     ],
     "includePlatforms": [
         "Editor"

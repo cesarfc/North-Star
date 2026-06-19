@@ -73,6 +73,20 @@ struct QuestFlagEntry { string questId; bool completed; }
 ```
 > ⚠️ `SaveSystem.Load` returns `null` (not a default struct) when a slot is missing — callers must null-check.
 
+### ICombatant.cs (Core abstraction for battle participants)
+```csharp
+// Implemented by Battle's CombatUnit. Lets Core events + systems (lock-on, battle camera)
+// reference combatants without Core depending on the Battle assembly.
+interface ICombatant {
+    string UnitName { get; }
+    bool IsAlive { get; }
+    bool IsPlayerControlled { get; }
+    int CurrentHP { get; }
+    int MaxHP { get; }
+    Transform Anchor { get; }   // world transform for targeting/framing
+}
+```
+
 ---
 
 ## Module 2 — Character & Customization
@@ -435,10 +449,11 @@ struct PlayerLeveledUpEvent    { int newLevel; int oldLevel; }
 struct PlayerHPChangedEvent    { int current; int max; }
 struct PlayerGoldChangedEvent  { int newTotal; int delta; }
 
-// Battle
-struct BattleStartedEvent      { CombatUnit[] allies; CombatUnit[] enemies; }
+// Battle  — events carry the Core `ICombatant` abstraction, not the concrete Battle CombatUnit,
+//           so Core does not depend on the Battle assembly (CombatUnit : MonoBehaviour, ICombatant).
+struct BattleStartedEvent      { ICombatant[] allies; ICombatant[] enemies; }
 struct BattleEndedEvent        { BattleResult result; }
-struct UnitDiedEvent           { CombatUnit unit; bool wasAlly; }
+struct UnitDiedEvent           { ICombatant unit; bool wasAlly; }
 
 // Quest
 struct QuestStartedEvent       { string questId; }
