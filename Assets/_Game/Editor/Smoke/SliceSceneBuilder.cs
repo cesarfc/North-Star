@@ -20,9 +20,26 @@ public static class SliceSceneBuilder
     private const string SmokeScenePath = SceneDir + "/SCN_Smoke.unity";
     private const string InputAssetPath = "Assets/Settings/PlayerInputActions.inputactions";
     private const string HealthPotionPath = "Assets/_Game/ScriptableObjects/Items/SO_Item_HealthPotion.asset";
+    private const string Zone02ScenePath = SceneDir + "/SCN_Zone02.unity";
+    private const string ZoneAssetPath = "Assets/_Game/ScriptableObjects/Zones/SO_Zone_Slice02.asset";
 
     public static void Build()
     {
+        // Target zone for the gate: a WorldZoneData asset pointing at the second scene.
+        var zoneAsset = AssetDatabase.LoadAssetAtPath<WorldZoneData>(ZoneAssetPath);
+        if (zoneAsset == null)
+        {
+            zoneAsset = ScriptableObject.CreateInstance<WorldZoneData>();
+            zoneAsset.zoneId = "zone-slice-02";
+            zoneAsset.displayName = "Outpost";
+            zoneAsset.sceneId = "SCN_Zone02";
+            AssetDatabase.CreateAsset(zoneAsset, ZoneAssetPath);
+            AssetDatabase.SaveAssets();
+        }
+
+        // Build the second zone first (NewScene below replaces it with the slice).
+        BuildZone02();
+
         var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
         // Sun (driven by DayNightCycle)
@@ -67,6 +84,7 @@ public static class SliceSceneBuilder
         var interaction = player.AddComponent<InteractionSystem>();
         var stats = player.AddComponent<PlayerStats>();
         var inventory = player.AddComponent<Inventory>();
+        player.tag = "Player"; // so the ZoneTransition trigger detects the player
 
         // Third-person camera (child of player)
         var camGo = new GameObject("Main Camera");
@@ -105,6 +123,20 @@ public static class SliceSceneBuilder
         battle.transform.localScale = new Vector3(1f, 1f, 1f);
         battle.AddComponent<BattleEncounter>();
 
+        // Zone gate — a pass-through trigger that additively loads SCN_Zone02 (World module)
+        var gate = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        gate.name = "ZoneGate";
+        gate.transform.position = new Vector3(0f, 1f, 12f);
+        gate.transform.localScale = new Vector3(3f, 2f, 0.3f);
+        gate.GetComponent<Collider>().isTrigger = true; // pass through; OnTriggerEnter fires
+        var zt = gate.AddComponent<ZoneTransition>();
+        WireRef(zt, "_targetZone", zoneAsset);
+        SetString(zt, "_spawnPointId", "spawn-outpost");
+        SetString(zt, "_fromZoneId", "zone-slice-01");
+
+        var bannerGo = new GameObject("ZoneBanner");
+        bannerGo.AddComponent<ZoneBanner>();
+
         // HUD (reads the three systems)
         var hudGo = new GameObject("SliceHud");
         var hud = hudGo.AddComponent<SliceHud>();
@@ -120,10 +152,40 @@ public static class SliceSceneBuilder
         {
             new EditorBuildSettingsScene(SmokeScenePath, true),
             new EditorBuildSettingsScene(ScenePath, true),
+            new EditorBuildSettingsScene(Zone02ScenePath, true),
         };
 
         Debug.Log("[NSSetup] SLICE_SCENE_OK -> " + ScenePath);
         EditorApplication.Exit(0);
+    }
+
+    /// <summary>Builds the additively-loaded second zone (SCN_Zone02), offset from the slice.</summary>
+    private static void BuildZone02()
+    {
+        var s = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+
+        var lightGo = new GameObject("Sun");
+        var l = lightGo.AddComponent<Light>();
+        l.type = LightType.Directional;
+        l.intensity = 1.1f;
+        lightGo.transform.rotation = Quaternion.Euler(50f, 200f, 0f);
+
+        var ground = GameObject.CreatePrimitive(PrimitiveType.Plane);
+        ground.name = "Ground (Outpost)";
+        ground.transform.position = new Vector3(60f, 0f, 0f); // offset so it doesn't overlap the slice
+        ground.transform.localScale = new Vector3(3f, 1f, 3f);
+
+        var marker = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+        marker.name = "OutpostMarker";
+        marker.transform.position = new Vector3(60f, 1f, 0f);
+
+        var label = new GameObject("ZoneLabel");
+        var zl = label.AddComponent<ZoneLabel>();
+        SetString(zl, "_text", "ZONE 02 — Outpost (additively loaded)");
+
+        if (!AssetDatabase.IsValidFolder(SceneDir))
+            AssetDatabase.CreateFolder("Assets/_Game", "Scenes");
+        EditorSceneManager.SaveScene(s, Zone02ScenePath);
     }
 
     private static void WireRef(Object target, string field, Object value)
@@ -141,6 +203,15 @@ public static class SliceSceneBuilder
         var prop = so.FindProperty(field);
         if (prop == null) { Debug.LogError($"[NSSetup] {target.GetType().Name}.{field} not found"); return; }
         prop.intValue = value;
+        so.ApplyModifiedPropertiesWithoutUndo();
+    }
+
+    private static void SetString(Object target, string field, string value)
+    {
+        var so = new SerializedObject(target);
+        var prop = so.FindProperty(field);
+        if (prop == null) { Debug.LogError($"[NSSetup] {target.GetType().Name}.{field} not found"); return; }
+        prop.stringValue = value;
         so.ApplyModifiedPropertiesWithoutUndo();
     }
 }

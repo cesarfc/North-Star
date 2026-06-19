@@ -7,6 +7,7 @@
         "NorthStar.Player",
         "NorthStar.Inventory",
         "NorthStar.Landscape",
+        "NorthStar.World",
         "NorthStar.Data",
         "Unity.InputSystem"
     ],

@@ -11,4 +11,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/_Game/Scenes/SCN_VerticalSlice.unity
     guid: 616ca7c6c3c2643dc96b98521486e546
+  - enabled: 1
+    path: Assets/_Game/Scenes/SCN_Zone02.unity
+    guid: 403ddd5180f4b4d2a8de8e14502fb3a0
   m_configObjects: {}
