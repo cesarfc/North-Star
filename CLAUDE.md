@@ -48,13 +48,24 @@ flag it so `INTERFACE.md` gets corrected. Do not silently re-shape signatures.
   referencing another module's MonoBehaviour. Need a new event? Add the struct to `GameEvents.cs`
   (Module 1's file) via the orchestrator, don't reach across modules.
 
+## Assembly definitions (compile-enforced boundaries)
+- Each module's code lives in its own asmdef `NorthStar.<Module>` (e.g. `NorthStar.Battle` in
+  `Scripts/Battle/`). Tests live in a `NorthStar.<Module>.Tests` asmdef that references the module.
+- Reference **only** `NorthStar.Core` + `NorthStar.Data` (ScriptableObjects) + the Unity packages you
+  actually use (`Unity.Cinemachine`, `Unity.InputSystem`, `Unity.TextMeshPro`, `UnityEngine.UI`, …).
+- **Never reference another gameplay module's asmdef.** Cross-module communication goes through
+  `EventBus` — the *absence* of the reference makes the "no cross-module calls" rule compiler-enforced.
+  If you genuinely need a shared type across modules, it belongs in **Core** (e.g. `ICombatant`); ask
+  the orchestrator to add it rather than referencing a sibling module.
+- `NorthStar.Core` is the dependency root (no gameplay references). `NorthStar.Data` → Core only.
+
 ## Testing
 - Write one unit test per public method using the **Unity Test Framework** (EditMode for pure logic).
 - Work with no tests is rejected at review.
 
 ## Verification reality (important)
-- Unity is **not installed in this environment** — there is **no local `dotnet` build** of this code
-  (it depends on `UnityEngine`). Do **not** claim "it compiles" from here.
-- Real compile/play verification happens in the Unity editor (Ctrl/Cmd+B → 0 errors) — the human
-  orchestrator runs that at each integration gate. Write code to the contract; keep pure logic
-  separable from `MonoBehaviour` glue so it's testable.
+- Unity **6000.5.0f1** is installed, but **you (a module agent) must not launch it** — the orchestrator
+  runs a single headless compile/test gate centrally (`-batchmode -runTests -testPlatform EditMode`).
+  Multiple editor instances contend over the `Library/` and license. Do **not** claim "it compiles."
+- Write code to the contract; keep pure logic separable from `MonoBehaviour` glue so it's EditMode-testable
+  without play mode.
