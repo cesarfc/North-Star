@@ -13,9 +13,26 @@ public static class SaveSystem
     private static string SlotPath(string slotName) =>
         Path.Combine(SaveDir, $"{slotName}.json");
 
-    /// <summary>Serialize and write a save file. Returns false on failure.</summary>
+    /// <summary>
+    /// Serialize and write a save file as JSON. Stamps <see cref="GameSaveData.savedAt"/>
+    /// with the current UTC time (ISO-8601). Returns false on null data, an empty slot
+    /// name, or any I/O failure.
+    /// </summary>
+    /// <param name="slotName">Slot identifier; becomes the file name.</param>
+    /// <param name="data">The save payload. Must not be null.</param>
     public static bool Save(string slotName, GameSaveData data)
     {
+        if (string.IsNullOrEmpty(slotName))
+        {
+            Debug.LogError("[SaveSystem] Save called with an empty slot name.");
+            return false;
+        }
+        if (data == null)
+        {
+            Debug.LogError($"[SaveSystem] Save called with null data for '{slotName}'.");
+            return false;
+        }
+
         try
         {
             Directory.CreateDirectory(SaveDir);
@@ -31,9 +48,15 @@ public static class SaveSystem
         }
     }
 
-    /// <summary>Load and deserialize a save file. Returns null if not found.</summary>
+    /// <summary>
+    /// Load and deserialize a save file. Returns null if the slot name is empty,
+    /// the file does not exist, or deserialization fails. Callers must null-check.
+    /// </summary>
+    /// <param name="slotName">Slot identifier to load.</param>
     public static GameSaveData Load(string slotName)
     {
+        if (string.IsNullOrEmpty(slotName)) return null;
+
         var path = SlotPath(slotName);
         if (!File.Exists(path))
         {
@@ -52,16 +75,19 @@ public static class SaveSystem
         }
     }
 
-    /// <summary>Delete a save slot from disk.</summary>
+    /// <summary>Delete a save slot from disk. No-op if the slot does not exist.</summary>
+    /// <param name="slotName">Slot identifier to delete.</param>
     public static void DeleteSave(string slotName)
     {
+        if (string.IsNullOrEmpty(slotName)) return;
         var path = SlotPath(slotName);
         if (File.Exists(path)) File.Delete(path);
     }
 
     /// <summary>Returns true if a save file exists for the given slot.</summary>
+    /// <param name="slotName">Slot identifier to test.</param>
     public static bool SaveExists(string slotName) =>
-        File.Exists(SlotPath(slotName));
+        !string.IsNullOrEmpty(slotName) && File.Exists(SlotPath(slotName));
 }
 
 // ─────────────────────────────────────────────
