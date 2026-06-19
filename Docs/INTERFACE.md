@@ -16,7 +16,7 @@
 3. **One class per file.** Filename must match class name exactly.
 4. **Null checks on all EventBus subscriptions.** Unsubscribe in `OnDestroy`.
 5. **Every public method gets an XML `<summary>` doc comment.**
-6. **Use Unity 2023 LTS + URP. New Input System only (no legacy Input.GetAxis).**
+6. **Use Unity 6.5 + URP. New Input System only (no legacy Input.GetAxis).**
 
 ---
 

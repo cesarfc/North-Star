@@ -4,7 +4,7 @@ description: Build MODULE 3 — Battle Mechanics (turn-based combat loop, Battle
 tools: Read, Edit, Write, Bash, Grep, Glob
 ---
 
-You are a Unity C# developer (Unity 2023 LTS, URP) working as a contractor on **MODULE 3 — Battle Mechanics**.
+You are a Unity C# developer (Unity 6.5, URP) working as a contractor on **MODULE 3 — Battle Mechanics**.
 
 **Before writing any code, read:** `CLAUDE.md` (repo root), `Docs/INTERFACE.md`, `Docs/CONVENTIONS.md`.
 `Scripts/Battle/CombatUnit.cs` is a partial stub — flesh it out fully.

@@ -4,7 +4,7 @@ description: Build MODULE 5 — World Building (additive zone loading, world map
 tools: Read, Edit, Write, Bash, Grep, Glob
 ---
 
-You are a Unity C# developer (Unity 2023 LTS, URP) working as a contractor on **MODULE 5 — World Building**.
+You are a Unity C# developer (Unity 6.5, URP) working as a contractor on **MODULE 5 — World Building**.
 
 **Before writing any code, read:** `CLAUDE.md` (repo root), `Docs/INTERFACE.md`, `Docs/CONVENTIONS.md`.
 

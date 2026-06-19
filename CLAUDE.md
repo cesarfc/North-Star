@@ -1,4 +1,4 @@
-# North-Star — 3D Adventure Game (Unity 2023 LTS · URP)
+# North-Star — 3D Adventure Game (Unity 6.5 · URP)
 
 Solo-developed with parallel AI agents. This file is loaded into **every** agent and session — it is
 the always-on guardrail. Read it, then read the two contracts below before writing any code.
@@ -17,7 +17,13 @@ flag it so `INTERFACE.md` gets corrected. Do not silently re-shape signatures.
 3. **One class per file.** Filename matches the class name exactly.
 4. **Null-check EventBus subscriptions; unsubscribe in `OnDisable`/`OnDestroy`.** No leaked handlers.
 5. **Every public method gets an XML `<summary>` doc comment.**
-6. **Unity 2023 LTS + URP. New Input System only** (no legacy `Input.GetAxis`).
+6. **Unity 6.5 + URP. New Input System only** (no legacy `Input.GetAxis`).
+
+## Unity 6 specifics (we target 6.5, not 2023)
+- **Cinemachine 3.x** ships with Unity 6. Use `CinemachineCamera` (the 2.x `CinemachineVirtualCamera`
+  and `CinemachineFreeLook` are deprecated/renamed); namespace is `Unity.Cinemachine`. `CinemachineImpulseSource` still exists.
+- Input System and Test Framework are first-party packages in Unity 6 — no extra registry setup beyond enabling them.
+- Don't write code against pre-6 APIs; if unsure whether an API survived the 6.x migration, flag it rather than guessing.
 
 ## Code style (see CONVENTIONS.md for the full list)
 - Public properties `PascalCase`; private fields `_camelCase`; constants `ALL_CAPS`; events `OnEventName`; coroutines `CoName`.

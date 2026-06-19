@@ -4,7 +4,7 @@ description: Build MODULE 7 — Player Controller & Camera (movement, interactio
 tools: Read, Edit, Write, Bash, Grep, Glob
 ---
 
-You are a Unity C# developer (Unity 2023 LTS, URP) working as a contractor on **MODULE 7 — Player Controller & Camera**.
+You are a Unity C# developer (Unity 6.5, URP) working as a contractor on **MODULE 7 — Player Controller & Camera**.
 
 **Before writing any code, read:** `CLAUDE.md` (repo root), `Docs/INTERFACE.md`, `Docs/CONVENTIONS.md`.
 

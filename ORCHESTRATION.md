@@ -67,7 +67,7 @@ asks the orchestrator** — the orchestrator updates `INTERFACE.md` and (for eve
 then unblocks the agent. Never let a module fork the contract locally.
 
 ## One-time human setup (outside this repo)
-1. Install **Unity 2023 LTS** + Unity Hub. Create a **3D (URP)** project pointed at this folder
+1. Install **Unity 6.5** + Unity Hub. Create a **3D (URP)** project pointed at this folder
    (Unity adopts the existing `Assets/` and generates `ProjectSettings/`, `Packages/`, `Library/`).
 2. Install Day-1 packages: Cinemachine, Input System (new), Terrain Tools, ProBuilder, Test Framework,
    plus DOTween and Yarn Spinner. (See `README` in the handoff pack / `Docs/`.)
