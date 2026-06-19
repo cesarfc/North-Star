@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  # Real script GUID from Assets/_Game/ScriptableObjects/MusicPlaylist.cs.meta.
+  m_Script: {fileID: 11500000, guid: ac790ebce74c74313aabfcfd8e356445, type: 3}
+  m_Name: SO_Playlist_Town
+  m_EditorClassIdentifier:
+  playlistId: town
+  # Drop MUS_Town_* AudioClips here in the editor; left empty so the asset imports clean.
+  tracks: []
+  shuffle: 0
+  crossfadeTime: 2
