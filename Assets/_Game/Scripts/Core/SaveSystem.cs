@@ -105,6 +105,8 @@ public class GameSaveData
     public InventorySnapshot inventory;
     // Quest flags: key = questId, value = completed
     public QuestFlagEntry[] questFlags = Array.Empty<QuestFlagEntry>();
+    // Zones the player has discovered (World fog-of-war persistence).
+    public string[] discoveredZoneIds = Array.Empty<string>();
 }
 
 [Serializable]

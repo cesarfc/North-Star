@@ -142,7 +142,11 @@ public class DayNightCycle : MonoBehaviour
             RenderSettings.ambientLight = _ambientColorOverDay.Evaluate(daylight);
     }
 
-    private void HandleHourChanged(int hour) => OnHourChanged?.Invoke(hour);
+    private void HandleHourChanged(int hour)
+    {
+        OnHourChanged?.Invoke(hour);
+        EventBus.Publish(new HourChangedEvent { hour = hour });
+    }
     private void HandleDawnStarted() => OnDawnStart?.Invoke();
     private void HandleDuskStarted() => OnDuskStart?.Invoke();
 

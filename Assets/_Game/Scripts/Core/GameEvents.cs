@@ -144,3 +144,28 @@ public struct DialogueEndedEvent
 {
     public string graphId;
 }
+
+// ─────────────────────────────────────────────
+// CHARACTER
+// ─────────────────────────────────────────────
+
+// Published whenever the character's visual loadout changes (armor/hair/color).
+// Carries the save-safe CharacterLoadout so any module can react without referencing Character.
+public struct LoadoutChangedEvent
+{
+    public CharacterLoadout loadout;
+}
+
+// ─────────────────────────────────────────────
+// ENVIRONMENT
+// ─────────────────────────────────────────────
+
+public struct WeatherChangedEvent
+{
+    public WeatherType newWeather;
+}
+
+public struct HourChangedEvent
+{
+    public int hour;   // 0–23, fires when the whole hour rolls over
+}

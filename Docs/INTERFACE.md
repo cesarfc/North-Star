@@ -66,6 +66,7 @@ class GameSaveData {
     CharacterLoadout loadout;
     InventorySnapshot inventory;
     QuestFlagEntry[] questFlags;    // key = questId, value = completed
+    string[] discoveredZoneIds;     // World fog-of-war persistence
 }
 
 [Serializable]
@@ -476,4 +477,11 @@ struct ItemRemovedEvent        { string itemId; int quantity; }
 // Dialogue
 struct DialogueStartedEvent    { string graphId; }
 struct DialogueEndedEvent      { string graphId; }
+
+// Character
+struct LoadoutChangedEvent     { CharacterLoadout loadout; }
+
+// Environment
+struct WeatherChangedEvent     { WeatherType newWeather; }
+struct HourChangedEvent        { int hour; }   // 0–23, on whole-hour rollover
 ```

@@ -158,6 +158,7 @@ public class EnvironmentManager : MonoBehaviour
     private void HandleModelWeatherChanged(WeatherType type)
     {
         OnWeatherChanged?.Invoke(type);
+        EventBus.Publish(new WeatherChangedEvent { newWeather = type });
     }
 
     private void EnsureModel()
