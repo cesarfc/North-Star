@@ -52,6 +52,9 @@ Walk the player up to each object (it sits roughly straight ahead, +Z) and press
 | `BattleTrigger`        | `BattleEncounter` (`IInteractable`) | **Battle**   | Spins up a real `BattleManager` with a Hero vs. two Goblins, then **auto-drives** the turn loop (each unit basic-attacks until `BattleManager` resolves Victory/Defeat). An IMGUI panel shows round number, active unit, and live HP. Drives `GameState` Battle ↔ Exploring. |
 | `ZoneGate` (+ `ZoneBanner`) | `ZoneTransition` (World) / `ZoneBanner` | **World** | A pass-through trigger (`isTrigger`) — walking into it additively loads `SCN_Zone02` and publishes `ZoneEnteredEvent`. `ZoneBanner` subscribes on the `EventBus` and flashes the entered zone name. |
 | `SCN_Zone02` (loaded)  | `ZoneLabel`                     | **World**        | The additively-loaded second zone ("Outpost"), offset at +60 X so it doesn't overlap. `ZoneLabel` announces it on-screen. |
+| `CharacterStation`     | `CharacterStation` (`IInteractable`) | **Character** | Press E → IMGUI panel driving the real `CharacterCustomizer` on the player: equip the 3 example armors, set the 2 hairstyles, random hair colour, unequip. Shows the live `CharacterLoadout`; fires `OnLoadoutChanged` + publishes `LoadoutChangedEvent`. (Mesh swap is silent without rigged renderers — the loadout logic + events are what's exercised.) |
+| `ShopStation` (+ `ShopUI`) | `ShopStation` (`IInteractable`) | **Economy** | Press E → IMGUI shop: Buy/Sell Health Potion · Mana Potion · Iron Sword via the real `ShopUI.Buy/Sell`, which publishes `GoldChangeRequestEvent` (→ `PlayerStats`) and updates `Inventory`. Gold + item count move live in the HUD. |
+| `AudioManager` + `SliceSfx` | `SliceSfx`                 | **Audio**        | `AudioManager` self-subscribes to `ZoneEnteredEvent` (zone-music crossfade); `SliceSfx` plays SFX on `ItemAddedEvent` / `BattleStartedEvent`. **Wired but silent** until clip assets are registered. |
 
 > The `BattleEncounter` auto-driver stands in for player BattleUI input + enemy AI (neither is
 > wired in this slice). It demonstrates the Battle turn order / damage / win-lose loop without
@@ -63,9 +66,9 @@ Walk the player up to each object (it sits roughly straight ahead, +Z) and press
 
 All cross-system wiring lives in the **`NorthStar.Game`** composition-root assembly — the only
 asmdef permitted to reference multiple gameplay modules (it references Core, Data, Player,
-Inventory, Landscape, and Battle). The glue classes (`SmokeNPC`, `PickupItem`, `SliceHud`,
-`BattleEncounter`, `ZoneBanner`, `ZoneLabel`, `SmokeBootstrap`) are the *only* place modules are
-joined up.
+Inventory, Landscape, Battle, Character, and Audio). The glue classes (`SmokeNPC`, `PickupItem`,
+`SliceHud`, `BattleEncounter`, `ZoneBanner`, `ZoneLabel`, `CharacterStation`, `ShopStation`,
+`SliceSfx`, `SmokeBootstrap`) are the *only* place modules are joined up.
 
 The gameplay modules themselves stay isolated: each has its own `NorthStar.<Module>` asmdef,
 references only Core + Data + the Unity packages it uses, and **never** references a sibling
@@ -97,10 +100,11 @@ You normally don't need to: the resulting `.unity` assets are committed.
 
 The systems below are coded and tested; what's missing is *authored assets*, not engineering:
 
-- **Rigged character/armor meshes** — so Character customization visibly re-meshes a model.
-  (The Character module is built but not yet wired into this slice's scene; there is no
-  customization station in `SCN_VerticalSlice` yet.)
-- **Audio clips** — the Audio module is wired but silent until real `SFX_`/`MUS_` clips exist.
+- **Rigged character/armor meshes** — the `CharacterStation` already drives the real
+  `CharacterCustomizer` (loadout logic + events fire), but the player capsule has no skinned
+  renderers, so the mesh swap is invisible until rigged armor/hair meshes on a shared skeleton exist.
+- **Audio clips** — `AudioManager` + `SliceSfx` are wired in the scene but silent until real
+  `SFX_`/`MUS_` clips are registered (SFX clip set + per-zone `MusicPlaylist` tracks).
 - **Yarn `.yarn` dialogue graphs + the `YARN_SPINNER` scripting define** — currently the NPC
   uses a placeholder hard-coded conversation (`SmokeNPC._lines`) instead of the Dialogue
   module's Yarn graphs.
@@ -110,10 +114,6 @@ The systems below are coded and tested; what's missing is *authored assets*, not
 - **Player spawn-repositioning on zone load** — `ZoneTransition` passes a `_spawnPointId`
   (`"spawn-outpost"`), but the player is not yet teleported to a spawn point in the newly
   loaded zone.
-
-> Note: an Economy shop station and a Character customization station are planned for this scene
-> but are **not present in the current build** — only the systems listed in the scene table above
-> are exercised here.
 
 ---
 
