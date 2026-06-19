@@ -3,7 +3,10 @@
     "rootNamespace": "",
     "references": [
         "NorthStar.Core",
-        "NorthStar.Data"
+        "NorthStar.Data",
+        "Unity.Cinemachine",
+        "Unity.TextMeshPro",
+        "UnityEngine.UI"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

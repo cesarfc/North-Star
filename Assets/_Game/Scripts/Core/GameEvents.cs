@@ -58,6 +58,16 @@ public struct UnitDiedEvent
     public bool wasAlly;
 }
 
+// Raised whenever ANY combatant's HP changes (allies and enemies alike), so the
+// battle UI can drive per-unit HP bars. PlayerHPChangedEvent is reserved for the
+// player HUD and is published only for the player-controlled unit.
+public struct UnitHPChangedEvent
+{
+    public ICombatant unit;
+    public int current;
+    public int max;
+}
+
 // ─────────────────────────────────────────────
 // QUEST
 // ─────────────────────────────────────────────
