@@ -227,10 +227,22 @@ namespace NorthStar.Battle.Tests
             public GameManagerScope()
             {
                 _go = new GameObject("GameManager");
-                _go.AddComponent<GameManager>();
+                var gm = _go.AddComponent<GameManager>();
+                // Assign the singleton directly. We deliberately do NOT call Awake: it invokes
+                // DontDestroyOnLoad and Destroy, which are play-mode-only and throw in EditMode.
+                // ChangeState is pure state + EventBus, so it works fine without Awake.
+                SetInstance(gm);
                 GameManager.Instance.ChangeState(GameState.Exploring);
             }
-            public void Dispose() => Object.DestroyImmediate(_go);
+            public void Dispose()
+            {
+                SetInstance(null);
+                Object.DestroyImmediate(_go);
+            }
+            private static void SetInstance(GameManager value) =>
+                typeof(GameManager)
+                    .GetProperty("Instance", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
+                    .SetValue(null, value);
         }
     }
 }

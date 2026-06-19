@@ -60,6 +60,23 @@ namespace NorthStar.Player
             UnwireCore();
         }
 
+        // PlayerStats is the authority for gold. Other modules (e.g. the shop in
+        // Module 8) request gold changes via EventBus rather than referencing Player.
+        private void OnEnable()
+        {
+            EventBus.Subscribe<GoldChangeRequestEvent>(HandleGoldChangeRequest);
+        }
+
+        private void OnDisable()
+        {
+            EventBus.Unsubscribe<GoldChangeRequestEvent>(HandleGoldChangeRequest);
+        }
+
+        private void HandleGoldChangeRequest(GoldChangeRequestEvent e)
+        {
+            _core?.ModifyGold(e.delta);
+        }
+
         /// <summary>
         /// Construct the pure stat core from the assigned config (or defaults
         /// when none is set). Kept separate so it can be reused by save/load.

@@ -171,10 +171,9 @@ List<AbilityData>      Abilities;
 List<StatusEffectData> ActiveStatuses;
 ```
 
-> **⚠️ Known Issue (Module 3 must fix):** the stub `CombatUnit.TakeDamage` publishes
-> `PlayerHPChangedEvent` for *every* unit, including enemies. Module 3 should either guard on
-> `isPlayerControlled` or introduce a dedicated `UnitHPChangedEvent { CombatUnit unit; int current; int max; }`
-> and reserve `PlayerHPChangedEvent` for the player. Add the new event struct to `GameEvents.cs` if you go that route.
+> **✅ Resolved (Module 3):** `CombatUnit.TakeDamage`/`Heal` now publish `UnitHPChangedEvent` for
+> every unit and publish `PlayerHPChangedEvent` only when `isPlayerControlled`. The old stub bug
+> (enemies firing the player HP event) is fixed; `UnitHPChangedEvent` is in `GameEvents.cs`.
 
 ### AbilityData.asset (ScriptableObject)
 ```csharp
@@ -443,17 +442,23 @@ All events are plain C# structs. Add fields but never remove or rename existing 
 // State
 struct GameStateChangedEvent   { GameState prev; GameState next; }
 
-// Player
+// Player / Economy
 struct PlayerDiedEvent         { Vector3 position; }
 struct PlayerLeveledUpEvent    { int newLevel; int oldLevel; }
 struct PlayerHPChangedEvent    { int current; int max; }
 struct PlayerGoldChangedEvent  { int newTotal; int delta; }
+// Request for PlayerStats (the gold authority) to change gold. Published by the shop/economy
+// so those modules never reference the Player module directly. PlayerStats subscribes + applies it.
+struct GoldChangeRequestEvent  { int delta; }
 
 // Battle  — events carry the Core `ICombatant` abstraction, not the concrete Battle CombatUnit,
 //           so Core does not depend on the Battle assembly (CombatUnit : MonoBehaviour, ICombatant).
 struct BattleStartedEvent      { ICombatant[] allies; ICombatant[] enemies; }
 struct BattleEndedEvent        { BattleResult result; }
 struct UnitDiedEvent           { ICombatant unit; bool wasAlly; }
+// Fired for EVERY combatant's HP change (drives battle HP bars). PlayerHPChangedEvent stays
+// reserved for the player HUD (published only for the player-controlled unit).
+struct UnitHPChangedEvent      { ICombatant unit; int current; int max; }
 
 // Quest
 struct QuestStartedEvent       { string questId; }
