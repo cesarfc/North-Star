@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fb8a8c0b9cdcf46ceb3472eef2dce7b4, type: 3}
+  m_Name: SO_Item_ManaPotion
+  m_EditorClassIdentifier:
+  itemId: consumable-mana-potion
+  displayName: Mana Potion
+  description: A cobalt elixir that rekindles spent magic. Restores a moderate amount of MP.
+  itemType: 2
+  buyPrice: 60
+  sellPrice: 24
+  isStackable: 1
+  maxStackSize: 99
+  icon: {fileID: 0}
+  hpRestore: 0
+  mpRestore: 40
+  appliedEffect: {fileID: 0}
+  curesAllStatus: 0

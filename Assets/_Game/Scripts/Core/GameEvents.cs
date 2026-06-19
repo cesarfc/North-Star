@@ -37,6 +37,18 @@ public struct PlayerGoldChangedEvent
     public int delta;
 }
 
+/// <summary>
+/// Request to change the player's gold. The source of truth lives in
+/// PlayerStats (Module 7). Modules that must NOT reference Player — e.g. the
+/// Inventory/Economy module's shop — publish this to ask for a gold change.
+/// PlayerStats listens, applies it via ModifyGold, then broadcasts the
+/// resulting PlayerGoldChangedEvent. Negative delta = spend, positive = grant.
+/// </summary>
+public struct GoldChangeRequestEvent
+{
+    public int delta;
+}
+
 // ─────────────────────────────────────────────
 // BATTLE
 // ─────────────────────────────────────────────
