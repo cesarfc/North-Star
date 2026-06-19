@@ -98,6 +98,13 @@ public static class SliceSceneBuilder
         SetInt(pickupComp, "_quantity", 1);
         WireRef(pickupComp, "_inventory", inventory);
 
+        // Battle trigger — interacting runs a demo battle through the real Battle module
+        var battle = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        battle.name = "BattleTrigger";
+        battle.transform.position = new Vector3(0f, 0.5f, 8f);
+        battle.transform.localScale = new Vector3(1f, 1f, 1f);
+        battle.AddComponent<BattleEncounter>();
+
         // HUD (reads the three systems)
         var hudGo = new GameObject("SliceHud");
         var hud = hudGo.AddComponent<SliceHud>();

@@ -6,7 +6,8 @@
         "NorthStar.Data",
         "NorthStar.Player",
         "NorthStar.Inventory",
-        "NorthStar.Landscape"
+        "NorthStar.Landscape",
+        "NorthStar.Battle"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
