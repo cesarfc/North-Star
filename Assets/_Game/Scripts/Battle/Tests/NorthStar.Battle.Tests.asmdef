@@ -1,0 +1,26 @@
+{
+    "name": "NorthStar.Battle.Tests",
+    "rootNamespace": "",
+    "references": [
+        "NorthStar.Battle",
+        "NorthStar.Core",
+        "NorthStar.Data",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
