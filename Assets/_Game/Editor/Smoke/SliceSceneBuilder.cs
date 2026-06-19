@@ -1,4 +1,5 @@
 #if UNITY_EDITOR
+using NorthStar.Character;
 using NorthStar.Inventory;
 using NorthStar.Player;
 using UnityEditor;
@@ -137,6 +138,45 @@ public static class SliceSceneBuilder
         var bannerGo = new GameObject("ZoneBanner");
         bannerGo.AddComponent<ZoneBanner>();
 
+        // Character customization station (drives CharacterCustomizer on the player)
+        var customizer = player.AddComponent<CharacterCustomizer>();
+        var armors = new[]
+        {
+            AssetDatabase.LoadAssetAtPath<ArmorData>("Assets/_Game/ScriptableObjects/Armor/SO_Armor_LightChest.asset"),
+            AssetDatabase.LoadAssetAtPath<ArmorData>("Assets/_Game/ScriptableObjects/Armor/SO_Armor_MediumChest.asset"),
+            AssetDatabase.LoadAssetAtPath<ArmorData>("Assets/_Game/ScriptableObjects/Armor/SO_Armor_HeavyChest.asset"),
+        };
+        var hairs = new[]
+        {
+            AssetDatabase.LoadAssetAtPath<HairStyleData>("Assets/_Game/ScriptableObjects/Hair/SO_Hair_ShortCrop.asset"),
+            AssetDatabase.LoadAssetAtPath<HairStyleData>("Assets/_Game/ScriptableObjects/Hair/SO_Hair_LongBraid.asset"),
+        };
+        var charStation = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        charStation.name = "CharacterStation";
+        charStation.transform.position = new Vector3(-6f, 0.5f, 2f);
+        var cs = charStation.AddComponent<CharacterStation>();
+        WireRef(cs, "_customizer", customizer);
+        WireArray(cs, "_armors", armors);
+        WireArray(cs, "_hairs", hairs);
+
+        // Shop station (drives ShopUI → gold via EventBus + inventory)
+        var shopGo = new GameObject("ShopUI");
+        var shopUI = shopGo.AddComponent<ShopUI>();
+        WireRef(shopUI, "_inventory", inventory);
+        var shopItems = new[]
+        {
+            AssetDatabase.LoadAssetAtPath<ItemData>("Assets/_Game/ScriptableObjects/Items/SO_Item_HealthPotion.asset"),
+            AssetDatabase.LoadAssetAtPath<ItemData>("Assets/_Game/ScriptableObjects/Items/SO_Item_ManaPotion.asset"),
+            AssetDatabase.LoadAssetAtPath<ItemData>("Assets/_Game/ScriptableObjects/Items/SO_Item_IronSword.asset"),
+        };
+        var shopStationGo = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        shopStationGo.name = "ShopStation";
+        shopStationGo.transform.position = new Vector3(6f, 0.5f, 2f);
+        var ss = shopStationGo.AddComponent<ShopStation>();
+        WireRef(ss, "_shop", shopUI);
+        WireRef(ss, "_stats", stats);
+        WireArray(ss, "_forSale", shopItems);
+
         // HUD (reads the three systems)
         var hudGo = new GameObject("SliceHud");
         var hud = hudGo.AddComponent<SliceHud>();
@@ -212,6 +252,17 @@ public static class SliceSceneBuilder
         var prop = so.FindProperty(field);
         if (prop == null) { Debug.LogError($"[NSSetup] {target.GetType().Name}.{field} not found"); return; }
         prop.stringValue = value;
+        so.ApplyModifiedPropertiesWithoutUndo();
+    }
+
+    private static void WireArray(Object target, string field, Object[] values)
+    {
+        var so = new SerializedObject(target);
+        var prop = so.FindProperty(field);
+        if (prop == null) { Debug.LogError($"[NSSetup] {target.GetType().Name}.{field} not found"); return; }
+        prop.arraySize = values.Length;
+        for (int i = 0; i < values.Length; i++)
+            prop.GetArrayElementAtIndex(i).objectReferenceValue = values[i];
         so.ApplyModifiedPropertiesWithoutUndo();
     }
 }
