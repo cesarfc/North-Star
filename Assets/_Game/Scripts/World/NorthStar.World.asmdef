@@ -1,0 +1,18 @@
+{
+    "name": "NorthStar.World",
+    "rootNamespace": "",
+    "references": [
+        "NorthStar.Core",
+        "NorthStar.Data",
+        "UnityEngine.UI"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
