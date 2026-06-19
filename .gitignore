@@ -61,3 +61,4 @@ Thumbs.db
 # Claude Code — keep agents/ and commands/ in the repo, ignore personal settings
 # ─────────────────────────────────────────────
 .claude/settings.local.json
+.claude/worktrees/

@@ -14,7 +14,7 @@
 1. **No direct cross-module references.** Modules communicate only through `EventBus.cs`.
 2. **All data lives in ScriptableObjects.** No hardcoded stats, strings, or IDs in MonoBehaviours.
 3. **One class per file.** Filename must match class name exactly.
-4. **Null checks on all EventBus subscriptions.** Unsubscribe in `OnDestroy`.
+4. **Null-check all EventBus subscriptions. Subscribe in `OnEnable`, unsubscribe in `OnDisable`** (use `OnDestroy` only for objects that never get disabled). Must match `CONVENTIONS.md`.
 5. **Every public method gets an XML `<summary>` doc comment.**
 6. **Use Unity 6.5 + URP. New Input System only (no legacy Input.GetAxis).**
 
