@@ -1,0 +1,21 @@
+{
+    "name": "NorthStar.Editor.Smoke",
+    "rootNamespace": "",
+    "references": [
+        "NorthStar.Core",
+        "NorthStar.Game",
+        "NorthStar.Player",
+        "Unity.InputSystem"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
