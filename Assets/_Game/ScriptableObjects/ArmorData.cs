@@ -15,6 +15,11 @@ public class ArmorData : ScriptableObject
     [Header("Visuals")]
     public Mesh          mesh;
     public Material[]    materials;
+    [Tooltip("Source mesh bones in bind-pose order (each = a shared-rig bone name). Lets " +
+             "CharacterCustomizer rebind this skinned mesh onto the character's shared skeleton. " +
+             "Empty = legacy sharedMesh-only swap. Populate via SkeletonRebinder.ExtractBoneNames " +
+             "from the imported FBX's SkinnedMeshRenderer.")]
+    public string[]      boneNames;
     public Sprite        icon;
 
     [Header("Stats")]

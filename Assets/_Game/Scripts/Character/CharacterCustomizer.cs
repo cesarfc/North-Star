@@ -33,9 +33,18 @@ namespace NorthStar.Character
         [Tooltip("Shader color property used to tint hair (URP Lit uses _BaseColor).")]
         [SerializeField] private string _hairColorProperty = "_BaseColor";
 
+        [Header("Shared skeleton")]
+        [Tooltip("Root of the character's shared armature. Swapped armor/hair meshes are rebound " +
+                 "to these bones by name so one rig deforms every piece. Leave unset to keep the " +
+                 "legacy sharedMesh-only swap.")]
+        [SerializeField] private Transform _skeletonRoot;
+
         // Resolved slot -> renderer map, built once from the serialized bindings.
         private readonly Dictionary<EquipmentSlot, SkinnedMeshRenderer> _slotRenderers
             = new Dictionary<EquipmentSlot, SkinnedMeshRenderer>();
+
+        // name -> bone Transform, built once from _skeletonRoot for the rebind.
+        private Dictionary<string, Transform> _skeleton;
 
         private CharacterLoadoutModel _model;
         private MaterialPropertyBlock _hairBlock;
@@ -47,6 +56,7 @@ namespace NorthStar.Character
         {
             _model = new CharacterLoadoutModel();
             BuildRendererMap();
+            _skeleton = SkeletonRebinder.BuildSkeletonMap(_skeletonRoot);
         }
 
         /// <summary>Index the serialized armor renderer bindings into a slot lookup.</summary>
@@ -100,7 +110,10 @@ namespace NorthStar.Character
             bool changed = _model.SetHair(styleId);
 
             if (_hairRenderer != null)
+            {
                 _hairRenderer.sharedMesh = data != null ? data.mesh : null;
+                if (data != null) RebindToSkeleton(_hairRenderer, data.boneNames);
+            }
 
             ApplyHairColor(_model.Loadout.hairColor);
             if (changed) RaiseChanged();
@@ -135,6 +148,24 @@ namespace NorthStar.Character
             if (data.materials != null && data.materials.Length > 0)
                 renderer.sharedMaterials = data.materials;
             renderer.enabled = data.mesh != null;
+            RebindToSkeleton(renderer, data.boneNames);
+        }
+
+        /// <summary>
+        /// Rebind a just-swapped skinned mesh onto the shared skeleton by bone name so it
+        /// deforms with this character's rig. No-op when no skeleton root is wired or the
+        /// data carries no bone names (legacy sharedMesh-only swap). Logs when some bones
+        /// can't be resolved (the rebind is then skipped rather than applied partially).
+        /// </summary>
+        private void RebindToSkeleton(SkinnedMeshRenderer renderer, string[] boneNames)
+        {
+            if (renderer == null || boneNames == null || boneNames.Length == 0) return;
+            if (_skeletonRoot == null || _skeleton == null || _skeleton.Count == 0) return;
+
+            if (!SkeletonRebinder.Rebind(renderer, boneNames, _skeleton, _skeletonRoot))
+                Debug.LogWarning(
+                    $"[CharacterCustomizer] Skipped rebind of '{renderer.name}' — one or more bones " +
+                    $"are missing from the skeleton under '{_skeletonRoot.name}'.", this);
         }
 
         private void ApplyHairColor(Color color)
