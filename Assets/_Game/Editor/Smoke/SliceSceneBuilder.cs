@@ -24,6 +24,8 @@ public static class SliceSceneBuilder
     private const string HealthPotionPath = "Assets/_Game/ScriptableObjects/Items/SO_Item_HealthPotion.asset";
     private const string Zone02ScenePath = SceneDir + "/SCN_Zone02.unity";
     private const string ZoneAssetPath = "Assets/_Game/ScriptableObjects/Zones/SO_Zone_Slice02.asset";
+    private const string BodyFbxPath = "Assets/_Game/Art/Characters/base_chibi_blender_v1.fbx";
+    private const string IronChestArmorPath = "Assets/_Game/ScriptableObjects/Armor/SO_Armor_IronChestplate.asset";
 
     public static void Build()
     {
@@ -83,11 +85,16 @@ public static class SliceSceneBuilder
         var cc = player.AddComponent<CharacterController>();
         cc.center = new Vector3(0f, 1f, 0f);
         cc.height = 2f;
-        var visual = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-        visual.name = "Visual";
-        Object.DestroyImmediate(visual.GetComponent<Collider>());
-        visual.transform.SetParent(player.transform, false);
-        visual.transform.localPosition = new Vector3(0f, 1f, 0f);
+        // Visual: the real rigged character when the art is imported (LFS), else a capsule.
+        SkinnedMeshRenderer chestRenderer = AddRiggedCharacter(player, out Transform skeletonRoot);
+        if (chestRenderer == null)
+        {
+            var visual = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            visual.name = "Visual";
+            Object.DestroyImmediate(visual.GetComponent<Collider>());
+            visual.transform.SetParent(player.transform, false);
+            visual.transform.localPosition = new Vector3(0f, 1f, 0f);
+        }
         var pc = player.AddComponent<PlayerController>();
         var interaction = player.AddComponent<InteractionSystem>();
         var stats = player.AddComponent<PlayerStats>();
@@ -145,10 +152,25 @@ public static class SliceSceneBuilder
         var bannerGo = new GameObject("ZoneBanner");
         bannerGo.AddComponent<ZoneBanner>();
 
-        // Character customization station (drives CharacterCustomizer on the player)
+        // Character customization station (drives CharacterCustomizer on the player). When the
+        // rigged body is present, wire its Chest-slot renderer + shared skeleton so equipping the
+        // iron chestplate visibly swaps a real mesh onto the character (the meshless placeholders
+        // clear the slot, demoing equip/unequip).
         var customizer = player.AddComponent<CharacterCustomizer>();
+        if (chestRenderer != null)
+        {
+            var custSo = new SerializedObject(customizer);
+            var rends = custSo.FindProperty("_armorRenderers");
+            rends.arraySize = 1;
+            var binding = rends.GetArrayElementAtIndex(0);
+            binding.FindPropertyRelative("slot").enumValueIndex = (int)EquipmentSlot.Chest;
+            binding.FindPropertyRelative("renderer").objectReferenceValue = chestRenderer;
+            custSo.FindProperty("_skeletonRoot").objectReferenceValue = skeletonRoot;
+            custSo.ApplyModifiedPropertiesWithoutUndo();
+        }
         var armors = new[]
         {
+            AssetDatabase.LoadAssetAtPath<ArmorData>(IronChestArmorPath), // real mesh — swaps onto the rig
             AssetDatabase.LoadAssetAtPath<ArmorData>("Assets/_Game/ScriptableObjects/Armor/SO_Armor_LightChest.asset"),
             AssetDatabase.LoadAssetAtPath<ArmorData>("Assets/_Game/ScriptableObjects/Armor/SO_Armor_MediumChest.asset"),
             AssetDatabase.LoadAssetAtPath<ArmorData>("Assets/_Game/ScriptableObjects/Armor/SO_Armor_HeavyChest.asset"),
@@ -239,6 +261,31 @@ public static class SliceSceneBuilder
         if (!AssetDatabase.IsValidFolder(SceneDir))
             AssetDatabase.CreateFolder("Assets/_Game", "Scenes");
         EditorSceneManager.SaveScene(s, Zone02ScenePath);
+    }
+
+    /// <summary>
+    /// Instantiate the rigged chibi body under the player and add an empty Chest-slot
+    /// <see cref="SkinnedMeshRenderer"/> for armor swaps. Returns that renderer (and the skeleton
+    /// root via <paramref name="skeletonRoot"/>), or <c>null</c> when the FBX isn't imported (e.g.
+    /// a clone without Git LFS) so the caller falls back to the placeholder capsule.
+    /// </summary>
+    private static SkinnedMeshRenderer AddRiggedCharacter(GameObject player, out Transform skeletonRoot)
+    {
+        skeletonRoot = null;
+        var bodyAsset = AssetDatabase.LoadAssetAtPath<GameObject>(BodyFbxPath);
+        if (bodyAsset == null) return null;
+
+        var model = (GameObject)PrefabUtility.InstantiatePrefab(bodyAsset);
+        model.name = "CharacterModel";
+        model.transform.SetParent(player.transform, false);
+        model.transform.localPosition = new Vector3(0f, -1f, 0f); // player origin = CC centre; drop feet to ground
+        model.transform.localRotation = Quaternion.identity;
+        model.transform.localScale = Vector3.one * 1.8f;          // chibi base is 1 m; scale toward the 2 m capsule
+        skeletonRoot = model.transform;
+
+        var chestGo = new GameObject("Armor_Chest");
+        chestGo.transform.SetParent(model.transform, false);
+        return chestGo.AddComponent<SkinnedMeshRenderer>();
     }
 
     private static void WireRef(Object target, string field, Object value)
