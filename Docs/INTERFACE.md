@@ -101,6 +101,17 @@ CharacterCustomizer.SetHairColor(Color color)
 CharacterCustomizer.GetCurrentLoadout() → CharacterLoadout
 CharacterCustomizer.OnLoadoutChanged → event(CharacterLoadout loadout)
 ```
+Serialized `_skeletonRoot` (shared armature root): swapped armor/hair meshes are rebound
+to its bones by name (via `SkeletonRebinder`) so one rig deforms every piece. Unset = the
+legacy `sharedMesh`-only swap.
+
+### SkeletonRebinder.cs (static helper)
+```csharp
+SkeletonRebinder.MapBones<T>(IReadOnlyList<string> names, IReadOnlyDictionary<string,T> skeleton, out int missing) → T[]
+SkeletonRebinder.Rebind(SkinnedMeshRenderer r, IReadOnlyList<string> names, IReadOnlyDictionary<string,Transform> skeleton, Transform rootBone=null) → bool
+SkeletonRebinder.BuildSkeletonMap(Transform root) → Dictionary<string,Transform>
+SkeletonRebinder.ExtractBoneNames(SkinnedMeshRenderer source) → string[]
+```
 
 ### ArmorData.asset (ScriptableObject)
 ```csharp
@@ -110,6 +121,7 @@ class ArmorData : ScriptableObject {
     EquipmentSlot slot;      // Head, Chest, Legs, Hands, Feet
     Mesh mesh;
     Material[] materials;
+    string[] boneNames;      // source mesh bones (bind order) → rebind onto shared skeleton; empty = legacy swap
     int defenseBonus;
     int weightClass;         // 1=Light, 2=Medium, 3=Heavy
     Sprite icon;
@@ -122,6 +134,7 @@ class HairStyleData : ScriptableObject {
     string styleId;
     string displayName;
     Mesh mesh;
+    string[] boneNames;      // source mesh bones (bind order) → rebind onto shared skeleton; empty = legacy swap
     Color[] availableColors;
     Sprite previewIcon;
 }

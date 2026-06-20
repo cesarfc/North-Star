@@ -1,4 +1,6 @@
 #if UNITY_EDITOR
+using NorthStar.Audio;
+using NorthStar.Character;
 using NorthStar.Inventory;
 using NorthStar.Player;
 using UnityEditor;
@@ -58,6 +60,12 @@ public static class SliceSceneBuilder
         var gm = new GameObject("GameManager");
         gm.AddComponent<GameManager>();
         gm.AddComponent<SmokeBootstrap>();
+
+        // Audio service (Audio module): pooled SFX + zone-music auto-crossfade. It self-subscribes
+        // to ZoneEnteredEvent, so simply existing in the scene makes the ZoneGate trigger music.
+        // Clip sets are empty for now — the wiring is silent until SFX/music assets are registered.
+        var audioGo = new GameObject("AudioManager");
+        var audioManager = audioGo.AddComponent<AudioManager>();
 
         // Day/Night cycle (fast time scale so the HUD clock visibly ticks in the demo)
         var dnGo = new GameObject("DayNightCycle");
@@ -137,12 +145,57 @@ public static class SliceSceneBuilder
         var bannerGo = new GameObject("ZoneBanner");
         bannerGo.AddComponent<ZoneBanner>();
 
+        // Character customization station (drives CharacterCustomizer on the player)
+        var customizer = player.AddComponent<CharacterCustomizer>();
+        var armors = new[]
+        {
+            AssetDatabase.LoadAssetAtPath<ArmorData>("Assets/_Game/ScriptableObjects/Armor/SO_Armor_LightChest.asset"),
+            AssetDatabase.LoadAssetAtPath<ArmorData>("Assets/_Game/ScriptableObjects/Armor/SO_Armor_MediumChest.asset"),
+            AssetDatabase.LoadAssetAtPath<ArmorData>("Assets/_Game/ScriptableObjects/Armor/SO_Armor_HeavyChest.asset"),
+        };
+        var hairs = new[]
+        {
+            AssetDatabase.LoadAssetAtPath<HairStyleData>("Assets/_Game/ScriptableObjects/Hair/SO_Hair_ShortCrop.asset"),
+            AssetDatabase.LoadAssetAtPath<HairStyleData>("Assets/_Game/ScriptableObjects/Hair/SO_Hair_LongBraid.asset"),
+        };
+        var charStation = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        charStation.name = "CharacterStation";
+        charStation.transform.position = new Vector3(-6f, 0.5f, 2f);
+        var cs = charStation.AddComponent<CharacterStation>();
+        WireRef(cs, "_customizer", customizer);
+        WireArray(cs, "_armors", armors);
+        WireArray(cs, "_hairs", hairs);
+
+        // Shop station (drives ShopUI → gold via EventBus + inventory)
+        var shopGo = new GameObject("ShopUI");
+        var shopUI = shopGo.AddComponent<ShopUI>();
+        WireRef(shopUI, "_inventory", inventory);
+        var shopItems = new[]
+        {
+            AssetDatabase.LoadAssetAtPath<ItemData>("Assets/_Game/ScriptableObjects/Items/SO_Item_HealthPotion.asset"),
+            AssetDatabase.LoadAssetAtPath<ItemData>("Assets/_Game/ScriptableObjects/Items/SO_Item_ManaPotion.asset"),
+            AssetDatabase.LoadAssetAtPath<ItemData>("Assets/_Game/ScriptableObjects/Items/SO_Item_IronSword.asset"),
+        };
+        var shopStationGo = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        shopStationGo.name = "ShopStation";
+        shopStationGo.transform.position = new Vector3(6f, 0.5f, 2f);
+        var ss = shopStationGo.AddComponent<ShopStation>();
+        WireRef(ss, "_shop", shopUI);
+        WireRef(ss, "_stats", stats);
+        WireArray(ss, "_forSale", shopItems);
+
         // HUD (reads the three systems)
         var hudGo = new GameObject("SliceHud");
         var hud = hudGo.AddComponent<SliceHud>();
         WireRef(hud, "_stats", stats);
         WireRef(hud, "_inventory", inventory);
         WireRef(hud, "_dayNight", dayNight);
+
+        // SFX glue (NorthStar.Game): plays pickup/battle SFX off ItemAddedEvent/BattleStartedEvent
+        // through the AudioManager above. Silent until matching clipIds are registered.
+        var sfxGo = new GameObject("SliceSfx");
+        var sliceSfx = sfxGo.AddComponent<SliceSfx>();
+        WireRef(sliceSfx, "_audioManager", audioManager);
 
         if (!AssetDatabase.IsValidFolder(SceneDir))
             AssetDatabase.CreateFolder("Assets/_Game", "Scenes");
@@ -212,6 +265,17 @@ public static class SliceSceneBuilder
         var prop = so.FindProperty(field);
         if (prop == null) { Debug.LogError($"[NSSetup] {target.GetType().Name}.{field} not found"); return; }
         prop.stringValue = value;
+        so.ApplyModifiedPropertiesWithoutUndo();
+    }
+
+    private static void WireArray(Object target, string field, Object[] values)
+    {
+        var so = new SerializedObject(target);
+        var prop = so.FindProperty(field);
+        if (prop == null) { Debug.LogError($"[NSSetup] {target.GetType().Name}.{field} not found"); return; }
+        prop.arraySize = values.Length;
+        for (int i = 0; i < values.Length; i++)
+            prop.GetArrayElementAtIndex(i).objectReferenceValue = values[i];
         so.ApplyModifiedPropertiesWithoutUndo();
     }
 }
