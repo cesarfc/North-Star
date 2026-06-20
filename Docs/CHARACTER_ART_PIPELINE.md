@@ -173,7 +173,12 @@ facing, and the rebind all check out and the rest of the roster is just repetiti
 | (a) FBX export path in Characters | ✅ `tools/blender/export_fbx.py` + `npm run export-fbx` — base body FBX verified (24 bones/10 sockets/49 clusters/textures) |
 | (b) Bone-rebind in `CharacterCustomizer` | ✅ `SkeletonRebinder` (rebind-by-name on swap) + `boneNames` on `ArmorData`/`HairStyleData`; **EditMode gate 249/249** |
 | `boneNames` auto-importer | ✅ `CharacterBoneNameImporter` — auto-fills on FBX (re)import + `Tools ▸ North-Star ▸ Character` menu / context menu |
-| First FBX imported + smoke test in Unity | ⛔ pending (manual Unity step — import an FBX, assign mesh to an `ArmorData`, wire `_skeletonRoot`, `Equip` in `SCN_VerticalSlice`) |
+| Armor smoke-test builder | ✅ `ArmorSmokeTestBuilder` — **Tools ▸ North-Star ▸ Character ▸ Build Armor Smoke Test** assembles `SCN_ArmorSmokeTest` + pre-equips via the real rebind |
+| Rig-swap rebind verified on real assets | ✅ **headless PASS** — 20/20 armor bones resolved against the imported body skeleton (`missing=0`), chest renderer bound to 20 bones |
+| Visual check (fit / co-deform / facing) | ⛔ your eyes — open `SCN_ArmorSmokeTest`; if the character faces away, tick **Bake Axis Conversion** on the FBX (currently `bakeAxisConversion=0`) |
+
+> **Art is in Git LFS:** `*.fbx`/`*.glb` are tracked via `.gitattributes`; a clone needs
+> `git lfs` installed to pull the real meshes (otherwise they arrive as pointer files).
 
 > **`boneNames` population:** the rebind engages only when `ArmorData.boneNames` /
 > `HairStyleData.boneNames` is filled (bind-pose order). `CharacterBoneNameImporter` does this
@@ -181,5 +186,3 @@ facing, and the rebind all check out and the rest of the roster is just repetiti
 > `SkinnedMeshRenderer.bones` (via `SkeletonRebinder.ExtractBoneNames`) and writes the names.
 > Re-run on demand from **Tools ▸ North-Star ▸ Character ▸ Sync boneNames**. Empty = safe
 > legacy `sharedMesh`-only swap (unchanged behavior).
-</content>
-</invoke>
