@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ab85df7d23b074c9888c1aeda24fad74, type: 3}
-  m_Name: SO_Hair_ShortCrop
-  m_EditorClassIdentifier: 
-  styleId: hair-short-crop
-  displayName: Short Crop
-  mesh: {fileID: -3300991445964652252, guid: a9f851861304d4e2c8a2006e89f91e68, type: 3}
+  m_Name: SO_Hair_Spiky
+  m_EditorClassIdentifier: NorthStar.Data::HairStyleData
+  styleId: hair-spiky
+  displayName: Spiky
+  mesh: {fileID: -3300991445964652252, guid: 8e125e3c2513945c7a431741023c3c94, type: 3}
   boneNames: []
   availableColors:
   - {r: 0.12, g: 0.09, b: 0.07, a: 1}
