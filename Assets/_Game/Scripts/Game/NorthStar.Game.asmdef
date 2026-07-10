@@ -9,7 +9,8 @@
         "NorthStar.Landscape",
         "NorthStar.Battle",
         "NorthStar.Character",
-        "NorthStar.Audio"
+        "NorthStar.Audio",
+        "NorthStar.Dialogue"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

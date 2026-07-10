@@ -14,6 +14,7 @@ public class SliceHud : MonoBehaviour
     [SerializeField] private PlayerStats _stats;
     [SerializeField] private Inventory _inventory;
     [SerializeField] private DayNightCycle _dayNight;
+    [SerializeField] private QuestManager _quests; // optional — quest log lines when wired
 
     private void OnGUI()
     {
@@ -30,6 +31,14 @@ public class SliceHud : MonoBehaviour
         if (_inventory != null) sb.Append($"Items  {TotalItems(_inventory)}");
 
         GUI.Box(new Rect(10, 36, 300, 90), sb.ToString(), style);
+
+        if (_quests == null) return;
+        QuestData[] active = _quests.GetActiveQuests();
+        if (active == null || active.Length == 0) return;
+        var quests = new StringBuilder("QUESTS");
+        foreach (QuestData quest in active)
+            if (quest != null) quests.Append($"\n• {quest.displayName}");
+        GUI.Box(new Rect(10, 132, 300, 30f + active.Length * 20f), quests.ToString(), style);
     }
 
     private static string FormatHour(float hour)

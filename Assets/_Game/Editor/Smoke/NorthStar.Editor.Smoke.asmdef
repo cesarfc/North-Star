@@ -11,7 +11,9 @@
         "NorthStar.Character",
         "NorthStar.Data",
         "NorthStar.Audio",
-        "Unity.InputSystem"
+        "NorthStar.Dialogue",
+        "Unity.InputSystem",
+        "YarnSpinner.Unity"
     ],
     "includePlatforms": [
         "Editor"
@@ -22,6 +24,12 @@
     "precompiledReferences": [],
     "autoReferenced": false,
     "defineConstraints": [],
-    "versionDefines": [],
+    "versionDefines": [
+        {
+            "name": "dev.yarnspinner.unity",
+            "expression": "3",
+            "define": "YARN_SPINNER"
+        }
+    ],
     "noEngineReferences": false
 }

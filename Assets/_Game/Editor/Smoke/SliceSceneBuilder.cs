@@ -161,11 +161,12 @@ public static class SliceSceneBuilder
         WireRef(pc, "_cameraTransform", camGo.transform);
         WireRef(interaction, "_inputActions", inputAsset);
 
-        // NPC (talk → save), reused from the smoke scene
+        // NPC — Elder Vane, the quest giver. Runs the real Dialogue module (Yarn Spinner)
+        // when the package is installed; falls back to the hard-coded SmokeNPC otherwise.
         var npc = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        npc.name = "NPC";
+        npc.name = "NPC_ElderVane";
         npc.transform.position = new Vector3(-3f, 0.5f, 5f);
-        npc.AddComponent<SmokeNPC>();
+        QuestManager quests = WireDialogue(npc);
 
         // Item pickup → Inventory
         var potion = AssetDatabase.LoadAssetAtPath<ItemData>(HealthPotionPath);
@@ -231,12 +232,13 @@ public static class SliceSceneBuilder
         WireRef(ss, "_stats", stats);
         WireArray(ss, "_forSale", shopItems);
 
-        // HUD (reads the three systems)
+        // HUD (reads the live systems)
         var hudGo = new GameObject("SliceHud");
         var hud = hudGo.AddComponent<SliceHud>();
         WireRef(hud, "_stats", stats);
         WireRef(hud, "_inventory", inventory);
         WireRef(hud, "_dayNight", dayNight);
+        if (quests != null) WireRef(hud, "_quests", quests);
 
         // SFX glue (NorthStar.Game): plays pickup/battle SFX off ItemAddedEvent/BattleStartedEvent
         // through the AudioManager above. Silent until matching clipIds are registered.
@@ -300,6 +302,62 @@ public static class SliceSceneBuilder
         if (!AssetDatabase.IsValidFolder(SceneDir))
             AssetDatabase.CreateFolder("Assets/_Game", "Scenes");
         EditorSceneManager.SaveScene(s, Zone02ScenePath);
+    }
+
+    /// <summary>
+    /// Wire the real dialogue stack onto the NPC: Yarn DialogueRunner + the module's
+    /// YarnDialogueRunner presenter → DialogueSystem → DialogueNPC/SliceDialogueUI, plus the
+    /// QuestManager and the dialogue→quest bridge. Returns the QuestManager (for the HUD), or
+    /// falls back to SmokeNPC (returning null) when Yarn Spinner isn't installed/imported.
+    /// </summary>
+    private static QuestManager WireDialogue(GameObject npc)
+    {
+#if YARN_SPINNER
+        var project = AssetDatabase.LoadAssetAtPath<Yarn.Unity.YarnProject>("Assets/_Game/Dialogue/NorthStar.yarnproject");
+        if (project == null)
+        {
+            Debug.LogWarning("[NSSetup] Yarn project not imported — NPC falls back to SmokeNPC.");
+            npc.AddComponent<SmokeNPC>();
+            return null;
+        }
+
+        var rig = new GameObject("DialogueRig");
+        var yarnRunner = rig.AddComponent<Yarn.Unity.DialogueRunner>();
+        var adapter = rig.AddComponent<YarnDialogueRunner>();
+        var runnerSo = new SerializedObject(yarnRunner);
+        runnerSo.FindProperty("yarnProject").objectReferenceValue = project;
+        runnerSo.FindProperty("autoStart").boolValue = false;
+        SerializedProperty presenters = runnerSo.FindProperty("dialoguePresenters");
+        presenters.arraySize = 1;
+        presenters.GetArrayElementAtIndex(0).objectReferenceValue = adapter;
+        runnerSo.ApplyModifiedPropertiesWithoutUndo();
+        WireRef(adapter, "_runner", yarnRunner);
+
+        var dialogueGo = new GameObject("DialogueSystem");
+        var dialogue = dialogueGo.AddComponent<DialogueSystem>();
+        WireRef(dialogue, "_runnerBehaviour", adapter);
+
+        var dialogueNpc = npc.AddComponent<DialogueNPC>();
+        WireRef(dialogueNpc, "_dialogue", dialogue);
+
+        var uiGo = new GameObject("SliceDialogueUI");
+        var dialogueUi = uiGo.AddComponent<SliceDialogueUI>();
+        WireRef(dialogueUi, "_dialogue", dialogue);
+
+        var questsGo = new GameObject("QuestManager");
+        var quests = questsGo.AddComponent<QuestManager>();
+        WireArray(quests, "_questDatabase", new Object[]
+        {
+            AssetDatabase.LoadAssetAtPath<QuestData>("Assets/_Game/ScriptableObjects/Quests/SO_Quest_FindTheSpark.asset"),
+            AssetDatabase.LoadAssetAtPath<QuestData>("Assets/_Game/ScriptableObjects/Quests/SO_Quest_MendTheBeacon.asset"),
+        });
+        var bridge = questsGo.AddComponent<DialogueQuestBridge>();
+        WireRef(bridge, "_quests", quests);
+        return quests;
+#else
+        npc.AddComponent<SmokeNPC>();
+        return null;
+#endif
     }
 
     private static T[] LoadAll<T>(string dir, params string[] names) where T : Object

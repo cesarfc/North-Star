@@ -1,0 +1,23 @@
+// Elder Vane — quest giver for "The Dying Spark" (quest-find-the-spark).
+// Graph ids are Yarn node titles; the slice NPC starts ElderVane_Intro.
+// Completing this conversation makes the game glue (DialogueQuestBridge) start the
+// quest and complete its talk-to-elder-vane objective.
+
+title: ElderVane_Intro
+---
+<<declare $met_vane = false>>
+<<if $met_vane>>
+Elder Vane: Back again, traveler? The embers still wait at the wayside shrines.
+Elder Vane: Bring three back before the last light fades — the hearth grows colder by the hour.
+<<else>>
+Elder Vane: Traveler! Thank the North Star you've come.
+Elder Vane: The hearthfire of Northwatch has gone cold. Our spark is dying.
+-> I'll help you rekindle it.
+    Elder Vane: Bless you. Gather three embers from the wayside shrines beyond the eastern gate.
+-> What happens if the fire goes out?
+    Elder Vane: Then the long dark takes the valley — and everything in it.
+    Elder Vane: Please. Gather three embers from the wayside shrines beyond the eastern gate.
+Elder Vane: Follow the path through the gate, and keep your blade close. Goblins prowl the ridge.
+<<set $met_vane = true>>
+<<endif>>
+===
