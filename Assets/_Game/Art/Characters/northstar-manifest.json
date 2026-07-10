@@ -1,0 +1,492 @@
+{
+  "rig": "chibi_humanoid_v1",
+  "rigVersion": "0.1.0",
+  "packVersion": 4,
+  "generatedAt": "2026-07-06T07:23:39.886Z",
+  "gitSha": "4c5e603f2cad2a08aa745a7f8c870fc9aac56105",
+  "exportProfile": {
+    "format": "glb",
+    "up": "+y",
+    "unitMeters": 1,
+    "unitHeight": 1,
+    "origin": "ground_center_between_feet",
+    "facing": "-z"
+  },
+  "profile": "standard",
+  "bones": [
+    "root",
+    "hips",
+    "spine_01",
+    "chest",
+    "neck",
+    "head",
+    "shoulder_l",
+    "upper_arm_l",
+    "lower_arm_l",
+    "hand_l",
+    "fingers_l",
+    "thumb_l",
+    "shoulder_r",
+    "upper_arm_r",
+    "lower_arm_r",
+    "hand_r",
+    "fingers_r",
+    "thumb_r",
+    "upper_leg_l",
+    "lower_leg_l",
+    "foot_l",
+    "upper_leg_r",
+    "lower_leg_r",
+    "foot_r"
+  ],
+  "bases": [
+    "characters/base_chibi_detailed_blender_v1.fbx",
+    "characters/base_chibi_flat_blender_v1.fbx",
+    "characters/base_chibi_v1.fbx",
+    "characters/base_roguelite_blender_v1.fbx"
+  ],
+  "sockets": [
+    {
+      "name": "socket_head_top",
+      "parentBone": "head",
+      "offset": [
+        0,
+        0.22,
+        0
+      ]
+    },
+    {
+      "name": "socket_face",
+      "parentBone": "head",
+      "offset": [
+        0,
+        0,
+        -0.16
+      ]
+    },
+    {
+      "name": "socket_back",
+      "parentBone": "chest",
+      "offset": [
+        0,
+        0.04,
+        0.1
+      ]
+    },
+    {
+      "name": "socket_chest",
+      "parentBone": "chest",
+      "offset": [
+        0,
+        0.04,
+        -0.1
+      ]
+    },
+    {
+      "name": "socket_hand_r",
+      "parentBone": "hand_r",
+      "offset": [
+        0,
+        -0.03,
+        0
+      ]
+    },
+    {
+      "name": "socket_hand_l",
+      "parentBone": "hand_l",
+      "offset": [
+        0,
+        -0.03,
+        0
+      ]
+    },
+    {
+      "name": "socket_weapon_tip",
+      "parentBone": "hand_r",
+      "offset": [
+        0,
+        -0.3,
+        0
+      ]
+    },
+    {
+      "name": "socket_cast",
+      "parentBone": "chest",
+      "offset": [
+        0,
+        -0.05,
+        -0.2
+      ]
+    },
+    {
+      "name": "socket_ground",
+      "parentBone": "root",
+      "offset": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "socket_pet_follow",
+      "parentBone": "root",
+      "offset": [
+        0.35,
+        0,
+        0.25
+      ]
+    }
+  ],
+  "socketRestWorld": {
+    "socket_head_top": {
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "position": [
+        0,
+        1.1,
+        0
+      ]
+    },
+    "socket_face": {
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "position": [
+        0,
+        0.8800000000000001,
+        -0.16
+      ]
+    },
+    "socket_back": {
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "position": [
+        0,
+        0.78,
+        0.1
+      ]
+    },
+    "socket_chest": {
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "position": [
+        0,
+        0.78,
+        -0.1
+      ]
+    },
+    "socket_hand_r": {
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "position": [
+        -0.15000000000000002,
+        0.4099999999999999,
+        0
+      ]
+    },
+    "socket_hand_l": {
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "position": [
+        0.15000000000000002,
+        0.4099999999999999,
+        0
+      ]
+    },
+    "socket_weapon_tip": {
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "position": [
+        -0.15000000000000002,
+        0.13999999999999996,
+        0
+      ]
+    },
+    "socket_cast": {
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "position": [
+        0,
+        0.69,
+        -0.2
+      ]
+    },
+    "socket_ground": {
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "position": [
+        0,
+        0,
+        0
+      ]
+    },
+    "socket_pet_follow": {
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "position": [
+        0.35,
+        0,
+        0.25
+      ]
+    }
+  },
+  "slotMap": {
+    "helmet": "Head",
+    "armor": "Chest",
+    "legs": "Legs",
+    "feet": "Feet",
+    "hair": "HairStyleData",
+    "weapon": "(socket gear — not yet in customizer)",
+    "offhand": "(socket gear — not yet in customizer)",
+    "back": "(socket gear — not yet in customizer)",
+    "pet": "(socket gear — not yet in customizer)"
+  },
+  "socketGear": [
+    {
+      "id": "iron_sword",
+      "slot": "weapon_right_hand",
+      "socket": "socket_hand_r",
+      "offset": [
+        0,
+        0,
+        0
+      ],
+      "rotationDeg": [
+        52,
+        0,
+        0
+      ],
+      "scale": 1,
+      "hide": [],
+      "fbx": "equipment/iron_sword.fbx",
+      "fbxTextured": true
+    },
+    {
+      "id": "fire_staff",
+      "slot": "weapon_right_hand",
+      "socket": "socket_hand_r",
+      "offset": [
+        0,
+        0,
+        0
+      ],
+      "rotationDeg": [
+        52,
+        0,
+        0
+      ],
+      "scale": 1,
+      "hide": [],
+      "fbx": "equipment/fire_staff.fbx",
+      "fbxTextured": false
+    },
+    {
+      "id": "round_shield",
+      "slot": "offhand_left_hand",
+      "socket": "socket_hand_l",
+      "offset": [
+        0,
+        0,
+        0
+      ],
+      "rotationDeg": [
+        0,
+        0,
+        0
+      ],
+      "scale": 1,
+      "hide": [],
+      "fbx": "equipment/round_shield.fbx",
+      "fbxTextured": true
+    },
+    {
+      "id": "hair_short",
+      "slot": "hair",
+      "socket": "socket_head_top",
+      "offset": [
+        0,
+        -0.06,
+        0
+      ],
+      "rotationDeg": [
+        0,
+        0,
+        0
+      ],
+      "scale": 1,
+      "hide": [],
+      "fbx": "equipment/hair_short.fbx",
+      "fbxTextured": true
+    },
+    {
+      "id": "hair_long",
+      "slot": "hair",
+      "socket": "socket_head_top",
+      "offset": [
+        0,
+        -0.06,
+        0
+      ],
+      "rotationDeg": [
+        0,
+        0,
+        0
+      ],
+      "scale": 1,
+      "hide": [],
+      "fbx": "equipment/hair_long.fbx",
+      "fbxTextured": false
+    },
+    {
+      "id": "hair_spiky",
+      "slot": "hair",
+      "socket": "socket_head_top",
+      "offset": [
+        0,
+        -0.06,
+        0
+      ],
+      "rotationDeg": [
+        0,
+        0,
+        0
+      ],
+      "scale": 1,
+      "hide": [],
+      "fbx": "equipment/hair_spiky.fbx",
+      "fbxTextured": false
+    },
+    {
+      "id": "iron_helmet",
+      "slot": "helmet",
+      "socket": "socket_head_top",
+      "offset": [
+        0,
+        -0.03,
+        0
+      ],
+      "rotationDeg": [
+        0,
+        0,
+        0
+      ],
+      "scale": 1,
+      "hide": [
+        "hair"
+      ],
+      "fbx": "equipment/iron_helmet.fbx",
+      "fbxTextured": true
+    },
+    {
+      "id": "green_cape",
+      "slot": "cape_or_back_item",
+      "socket": "socket_back",
+      "offset": [
+        0,
+        0,
+        0
+      ],
+      "rotationDeg": [
+        0,
+        0,
+        0
+      ],
+      "scale": 1,
+      "hide": [],
+      "fbx": "equipment/green_cape.fbx",
+      "fbxTextured": true
+    }
+  ],
+  "wornGear": [
+    {
+      "id": "iron_chestplate",
+      "slot": "armor_overlay",
+      "region": [
+        0.44,
+        0.82
+      ],
+      "skinnedProfile": "standard",
+      "fbx": "equipment/iron_chestplate.fbx"
+    },
+    {
+      "id": "cloth_tunic",
+      "slot": "body_outfit",
+      "region": [
+        0.4,
+        0.7
+      ],
+      "skinnedProfile": "standard",
+      "fbx": "equipment/cloth_tunic.fbx"
+    },
+    {
+      "id": "leather_pants",
+      "slot": "legs",
+      "region": [
+        0.02,
+        0.52
+      ],
+      "skinnedProfile": "standard",
+      "fbx": "equipment/leather_pants.fbx"
+    },
+    {
+      "id": "leather_boots",
+      "slot": "feet",
+      "region": [
+        0,
+        0.18
+      ],
+      "skinnedProfile": "standard",
+      "fbx": "equipment/leather_boots.fbx"
+    }
+  ],
+  "expressions": {
+    "style": "chibi_toon",
+    "names": [
+      "neutral",
+      "happy",
+      "angry",
+      "surprised",
+      "sad"
+    ],
+    "path": "faces/chibi_toon/"
+  }
+}
