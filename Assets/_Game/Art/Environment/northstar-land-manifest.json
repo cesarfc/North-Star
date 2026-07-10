@@ -1,0 +1,124 @@
+{
+  "pack": "northstar-land",
+  "version": 1,
+  "seed": 5,
+  "generatedAt": "2026-07-10T09:19:16Z",
+  "exportProfile": {
+    "format": "fbx",
+    "up": "+y",
+    "unitMeters": 1,
+    "origin": "ground_center"
+  },
+  "props": [
+    {
+      "id": "tree_oak",
+      "fbx": "environment/tree_oak.fbx",
+      "role": "tree",
+      "footprintRadius": 1.4,
+      "scatter": {
+        "countPer100m2": 0.9,
+        "scaleMin": 0.8,
+        "scaleMax": 1.35
+      }
+    },
+    {
+      "id": "tree_pine",
+      "fbx": "environment/tree_pine.fbx",
+      "role": "tree",
+      "footprintRadius": 1.2,
+      "scatter": {
+        "countPer100m2": 0.9,
+        "scaleMin": 0.8,
+        "scaleMax": 1.4
+      }
+    },
+    {
+      "id": "rock_large",
+      "fbx": "environment/rock_large.fbx",
+      "role": "rock",
+      "footprintRadius": 1.1,
+      "scatter": {
+        "countPer100m2": 0.25,
+        "scaleMin": 0.7,
+        "scaleMax": 1.5
+      }
+    },
+    {
+      "id": "rock_small",
+      "fbx": "environment/rock_small.fbx",
+      "role": "rock",
+      "footprintRadius": 0.4,
+      "scatter": {
+        "countPer100m2": 0.8,
+        "scaleMin": 0.6,
+        "scaleMax": 1.3
+      }
+    },
+    {
+      "id": "bush",
+      "fbx": "environment/bush.fbx",
+      "role": "bush",
+      "footprintRadius": 0.6,
+      "scatter": {
+        "countPer100m2": 1.2,
+        "scaleMin": 0.7,
+        "scaleMax": 1.3
+      }
+    },
+    {
+      "id": "stump",
+      "fbx": "environment/stump.fbx",
+      "role": "stump",
+      "footprintRadius": 0.4,
+      "scatter": {
+        "countPer100m2": 0.2,
+        "scaleMin": 0.8,
+        "scaleMax": 1.2
+      }
+    },
+    {
+      "id": "mushroom_cluster",
+      "fbx": "environment/mushroom_cluster.fbx",
+      "role": "detail",
+      "footprintRadius": 0.25,
+      "scatter": {
+        "countPer100m2": 0.5,
+        "scaleMin": 0.8,
+        "scaleMax": 1.6
+      }
+    },
+    {
+      "id": "grass_tuft",
+      "fbx": "environment/grass_tuft.fbx",
+      "role": "grass",
+      "footprintRadius": 0.15,
+      "scatter": {
+        "countPer100m2": 0.0,
+        "scaleMin": 0.8,
+        "scaleMax": 1.4
+      }
+    }
+  ],
+  "textures": [
+    {
+      "id": "grass",
+      "file": "textures/T_Ground_Grass.png",
+      "role": "terrain_base"
+    },
+    {
+      "id": "dirt",
+      "file": "textures/T_Ground_Dirt.png",
+      "role": "terrain_slope"
+    },
+    {
+      "id": "rock",
+      "file": "textures/T_Ground_Rock.png",
+      "role": "terrain_cliff"
+    },
+    {
+      "id": "path",
+      "file": "textures/T_Ground_Path.png",
+      "role": "terrain_path"
+    }
+  ]
+}
