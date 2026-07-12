@@ -106,16 +106,25 @@ need any of them: the resulting `.unity`/`.asset` files are committed.
 
 ## What still needs CONTENT (not code)
 
-- **Ember shrines / quest completion** — `quest-find-the-spark` starts and its talk objective
-  completes via dialogue; the three `gather-three-embers` shrine pickups aren't placed yet, so
-  the quest can't be finished.
-- **Animations** — the rig is posed but not animated (no walk/attack clips retargeted to the
-  24-bone skeleton yet).
-- **Enemy visuals in battle** — battles are stat-driven (`CombatUnit` GameObjects with no
-  meshes); goblin models would come from the factory's enemy pipeline.
-- **DOTween** — optional; `UIAnimator` uses coroutines, so no tween package is required.
-- **Richer audio** — the generated placeholder WAVs prove the wiring; real clips can replace
-  them 1:1 by clipId.
+Tracked as GitHub issues; see `Docs/ROADMAP.md` for the full index and suggested order.
+
+- **Ember shrines / quest completion** ([#2](https://github.com/cesarfc/North-Star/issues/2)) —
+  the quest starts and the talk objective completes via dialogue; the three
+  `gather-three-embers` shrine pickups aren't placed yet.
+- **Animations** ([#3](https://github.com/cesarfc/North-Star/issues/3)) — the rig is posed but not
+  animated (no clips retargeted to the 24-bone skeleton yet).
+- **Enemy visuals in battle** ([#4](https://github.com/cesarfc/North-Star/issues/4)) — battles are
+  stat-driven (`CombatUnit` with no meshes); goblin models come from the factory enemy pipeline.
+- **Runtime socket gear** ([#5](https://github.com/cesarfc/North-Star/issues/5)) — sword/shield/
+  cape are mounted at build time but not yet equippable at runtime via `CharacterCustomizer`.
+- **Richer audio** ([#6](https://github.com/cesarfc/North-Star/issues/6)) — generated placeholder
+  WAVs prove the wiring; authored clips replace them 1:1 by clipId.
+- **DOTween polish** ([#7](https://github.com/cesarfc/North-Star/issues/7)) — optional;
+  `UIAnimator` uses coroutines, so no tween package is required to run the slice.
+- **Free-look camera** ([#8](https://github.com/cesarfc/North-Star/issues/8)) — the camera is a
+  fixed child, not yet a Cinemachine 3.x orbital rig.
+- **World expansion** ([#9](https://github.com/cesarfc/North-Star/issues/9)) — only two zones are
+  built; more zones + the world map remain.
 
 ---
 
