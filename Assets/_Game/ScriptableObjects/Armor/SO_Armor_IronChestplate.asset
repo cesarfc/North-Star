@@ -15,9 +15,9 @@ MonoBehaviour:
   itemId: armor-iron-chestplate
   displayName: Iron Chestplate
   slot: 1
-  mesh: {fileID: 1730329893218226754, guid: 7be42da675ec14725813df199b783bc1, type: 3}
+  mesh: {fileID: 1730329893218226754, guid: d42d940e5f6f0494ab88f16f828a9ebf, type: 3}
   materials:
-  - {fileID: 4611759551533685079, guid: 7be42da675ec14725813df199b783bc1, type: 3}
+  - {fileID: 4611759551533685079, guid: d42d940e5f6f0494ab88f16f828a9ebf, type: 3}
   boneNames:
   - root
   - hips
@@ -29,10 +29,14 @@ MonoBehaviour:
   - upper_arm_l
   - lower_arm_l
   - hand_l
+  - fingers_l
+  - thumb_l
   - shoulder_r
   - upper_arm_r
   - lower_arm_r
   - hand_r
+  - fingers_r
+  - thumb_r
   - upper_leg_l
   - lower_leg_l
   - foot_l
@@ -40,5 +44,5 @@ MonoBehaviour:
   - lower_leg_r
   - foot_r
   icon: {fileID: 0}
-  defenseBonus: 0
-  weightClass: 0
+  defenseBonus: 5
+  weightClass: 3

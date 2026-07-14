@@ -35,6 +35,9 @@ public class ZoneTransition : MonoBehaviour
 
     private bool _isTransitioning;
 
+    // The collider that tripped the trigger — placed at the spawn point once the load completes.
+    private Collider _traveler;
+
     /// <summary>The spawn-point id this transition targets in the destination scene.</summary>
     public string SpawnPointId => _spawnPointId;
 
@@ -63,6 +66,7 @@ public class ZoneTransition : MonoBehaviour
             return;
         }
 
+        _traveler = other;
         TravelTo(_targetZone.sceneId, _spawnPointId);
     }
 
@@ -108,10 +112,70 @@ public class ZoneTransition : MonoBehaviour
         while (!op.isDone)
             yield return null;
 
+        PlaceTraveler(sceneId, spawnPointId);
         PublishArrival(sceneId, spawnPointId);
 
         OnTransitionComplete?.Invoke(sceneId);
         _isTransitioning = false;
+    }
+
+    /// <summary>
+    /// Move the traveler that tripped this trigger to <c>SpawnPoint_[spawnPointId]</c> in the
+    /// freshly loaded scene, fulfilling the placement contract documented on this class. A
+    /// <see cref="CharacterController"/> is toggled off around the move so the controller
+    /// doesn't overwrite the teleport on its next internal Move. No-op when the spawn id is
+    /// empty or the point doesn't exist (a warning is logged so authors catch the typo).
+    /// </summary>
+    private void PlaceTraveler(string sceneId, string spawnPointId)
+    {
+        if (_traveler == null || string.IsNullOrEmpty(spawnPointId)) return;
+
+        Transform spawn = FindSpawnPoint(SceneManager.GetSceneByName(sceneId), spawnPointId);
+        if (spawn == null)
+        {
+            Debug.LogWarning($"[ZoneTransition] SpawnPoint_{spawnPointId} not found in scene '{sceneId}' — " +
+                             "traveler left in place.");
+            return;
+        }
+
+        var controller = _traveler as CharacterController;
+        if (controller != null) controller.enabled = false;
+        _traveler.transform.SetPositionAndRotation(
+            spawn.position,
+            Quaternion.Euler(0f, spawn.eulerAngles.y, 0f));
+        if (controller != null) controller.enabled = true;
+        _traveler = null;
+    }
+
+    /// <summary>
+    /// Find the <c>SpawnPoint_[spawnPointId]</c> transform anywhere in <paramref name="scene"/>,
+    /// or <c>null</c> when the scene isn't loaded or has no such object. Static so the lookup
+    /// convention is unit-testable without a transition volume.
+    /// </summary>
+    public static Transform FindSpawnPoint(Scene scene, string spawnPointId)
+    {
+        if (!scene.IsValid() || !scene.isLoaded || string.IsNullOrEmpty(spawnPointId)) return null;
+
+        string target = "SpawnPoint_" + spawnPointId;
+        foreach (GameObject root in scene.GetRootGameObjects())
+        {
+            if (root.name == target) return root.transform;
+            Transform found = FindChildDeep(root.transform, target);
+            if (found != null) return found;
+        }
+        return null;
+    }
+
+    private static Transform FindChildDeep(Transform parent, string childName)
+    {
+        for (int i = 0; i < parent.childCount; i++)
+        {
+            Transform child = parent.GetChild(i);
+            if (child.name == childName) return child;
+            Transform found = FindChildDeep(child, childName);
+            if (found != null) return found;
+        }
+        return null;
     }
 
     /// <summary>

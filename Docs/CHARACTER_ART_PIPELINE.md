@@ -171,11 +171,15 @@ facing, and the rebind all check out and the rest of the roster is just repetiti
 |---|---|
 | (c) This doc | ✅ |
 | (a) FBX export path in Characters | ✅ `tools/blender/export_fbx.py` + `npm run export-fbx` — base body FBX verified (24 bones/10 sockets/49 clusters/textures) |
-| (b) Bone-rebind in `CharacterCustomizer` | ✅ `SkeletonRebinder` (rebind-by-name on swap) + `boneNames` on `ArmorData`/`HairStyleData`; **EditMode gate 249/249** |
+| (b) Bone-rebind in `CharacterCustomizer` | ✅ `SkeletonRebinder` (rebind-by-name on swap) + `boneNames` on `ArmorData`/`HairStyleData`; **EditMode gate 253/253** |
 | `boneNames` auto-importer | ✅ `CharacterBoneNameImporter` — auto-fills on FBX (re)import + `Tools ▸ North-Star ▸ Character` menu / context menu |
+| **Full wardrobe library from the manifest** | ✅ `CharacterAssetLibraryBuilder` (`NorthStar.Editor.Smoke`) reads `northstar-manifest.json` → all 8 `ArmorData`/`HairStyleData` SOs (chest/helmet/tunic/pants/boots + 3 hairs), meshes/materials/boneNames wired. Menu: **Tools ▸ North-Star ▸ Character ▸ Build Asset Library From Manifest**; headless `CharacterAssetLibraryBuilder.BuildAndExit`. |
+| **Dressed rig in the slice** | ✅ `SliceCharacterRig` instantiates the body, adds slot renderers (Chest/Legs/Feet on the shared skeleton; Head + hair on the head socket), mounts sword/shield/cape on manifest sockets, and pre-equips the starter outfit via the real rebind. Wired into `SCN_VerticalSlice` + `SCN_Boot`. |
 | Armor smoke-test builder | ✅ `ArmorSmokeTestBuilder` — **Tools ▸ North-Star ▸ Character ▸ Build Armor Smoke Test** assembles `SCN_ArmorSmokeTest` + pre-equips via the real rebind |
-| Rig-swap rebind verified on real assets | ✅ **headless PASS** — 20/20 armor bones resolved against the imported body skeleton (`missing=0`), chest renderer bound to 20 bones |
-| Visual check (fit / co-deform / facing) | ⛔ your eyes — open `SCN_ArmorSmokeTest`; if the character faces away, tick **Bake Axis Conversion** on the FBX (currently `bakeAxisConversion=0`) |
+| Rig-swap rebind verified on real assets | ✅ **headless PASS** — all worn pieces resolve 24/24 bones against the imported body skeleton (`missing=0`) |
+| Visual check (fit / co-deform / facing) | ⚠️ `SliceCharacterRig` yaws the visual 180° so it faces the player's +Z (pack FBX face −Z, `bakeAxisConversion=0`). Confirm the fit/facing with human eyes and, if standardizing on Bake Axis Conversion instead, see the facing issue in `Docs/ROADMAP.md`. |
+| Socket gear as a runtime customizer slot | ⛔ **not yet** — weapon/offhand/back/pet sockets are placed at *build* time by `SliceCharacterRig`, but `CharacterCustomizer` only models `EquipmentSlot` armor + hair. Runtime equip/swap of socket gear is a tracked backlog item (`Docs/ROADMAP.md`). |
+| Animations | ⛔ **not yet** — the rig is posed but not animated. Retarget Unity humanoid/Mixamo clips against the 24-bone skeleton (bone names are standardized); tracked in `Docs/ROADMAP.md`. |
 
 > **Art is in Git LFS:** `*.fbx`/`*.glb` are tracked via `.gitattributes`; a clone needs
 > `git lfs` installed to pull the real meshes (otherwise they arrive as pointer files).

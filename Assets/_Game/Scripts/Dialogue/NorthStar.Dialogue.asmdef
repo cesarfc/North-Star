@@ -6,7 +6,8 @@
         "NorthStar.Data",
         "Unity.Cinemachine",
         "Unity.TextMeshPro",
-        "UnityEngine.UI"
+        "UnityEngine.UI",
+        "YarnSpinner.Unity"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -15,6 +16,12 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": [],
+    "versionDefines": [
+        {
+            "name": "dev.yarnspinner.unity",
+            "expression": "3",
+            "define": "YARN_SPINNER"
+        }
+    ],
     "noEngineReferences": false
 }

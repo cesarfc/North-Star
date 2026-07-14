@@ -11,10 +11,11 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ab85df7d23b074c9888c1aeda24fad74, type: 3}
   m_Name: SO_Hair_LongBraid
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   styleId: hair-long-braid
   displayName: Long Braid
-  mesh: {fileID: 0}
+  mesh: {fileID: -3300991445964652252, guid: 51f170e91d1f14fd384f31fdc44882b9, type: 3}
+  boneNames: []
   availableColors:
   - {r: 0.12, g: 0.09, b: 0.07, a: 1}
   - {r: 0.45, g: 0.31, b: 0.18, a: 1}

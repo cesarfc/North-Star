@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using NorthStar.Audio;
 using NorthStar.Character;
+using NorthStar.EditorTools;
 using NorthStar.Inventory;
 using NorthStar.Player;
 using UnityEditor;
@@ -9,11 +10,13 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 /// <summary>
-/// Builds the Phase 4 vertical-slice scene (SCN_VerticalSlice): the player loop plus three
-/// complete systems wired together — a running DayNightCycle, an item Pickup that feeds the
-/// Inventory, and a HUD reading live PlayerStats/Inventory/DayNight state. Private serialized
-/// fields are wired via SerializedObject. Invoke headless:
-///   Unity -batchmode -quit -projectPath . -executeMethod SliceSceneBuilder.Build
+/// Builds the vertical-slice scene (SCN_VerticalSlice): the full player loop on real assets —
+/// factory-generated terrain/props/grass (land pack), the rigged, dressed chibi character with
+/// the complete wardrobe (character pack), plus the running DayNightCycle, pickups feeding the
+/// Inventory, a battle encounter, a zone gate into SCN_Zone02, shop + customization stations and
+/// the HUD. Private serialized fields are wired via SerializedObject. Invoke headless:
+///   Unity -batchmode -projectPath . -executeMethod SliceSceneBuilder.Build
+/// (or chain without exiting via <see cref="BuildScene"/> from another builder).
 /// </summary>
 public static class SliceSceneBuilder
 {
@@ -24,10 +27,42 @@ public static class SliceSceneBuilder
     private const string HealthPotionPath = "Assets/_Game/ScriptableObjects/Items/SO_Item_HealthPotion.asset";
     private const string Zone02ScenePath = SceneDir + "/SCN_Zone02.unity";
     private const string ZoneAssetPath = "Assets/_Game/ScriptableObjects/Zones/SO_Zone_Slice02.asset";
-    private const string BodyFbxPath = "Assets/_Game/Art/Characters/base_chibi_blender_v1.fbx";
-    private const string IronChestArmorPath = "Assets/_Game/ScriptableObjects/Armor/SO_Armor_IronChestplate.asset";
+    private const string ArmorDir = "Assets/_Game/ScriptableObjects/Armor";
+    private const string HairDir = "Assets/_Game/ScriptableObjects/Hair";
 
+    /// <summary>Where the slice zone's flat gameplay plateau sits (surface at world Y = 0).</summary>
+    private static readonly SliceEnvironmentBuilder.TerrainSpec SliceTerrain = new SliceEnvironmentBuilder.TerrainSpec
+    {
+        name = "Terrain_Slice",
+        worldCenter = Vector2.zero,
+        size = 120f,
+        plateauRadius = 26f,
+        seed = 42,
+    };
+
+    /// <summary>Zone02 ("Outpost") terrain, east of the slice bowl — reached via teleporting gate.</summary>
+    private static readonly SliceEnvironmentBuilder.TerrainSpec OutpostTerrain = new SliceEnvironmentBuilder.TerrainSpec
+    {
+        name = "Terrain_Outpost",
+        worldCenter = new Vector2(100f, 0f),
+        size = 80f,
+        plateauRadius = 20f,
+        seed = 77,
+    };
+
+    /// <summary>Center of Zone02's gameplay plateau (marker, label, spawn point live here).</summary>
+    private static readonly Vector3 OutpostCenter = new Vector3(100f, 0f, 0f);
+
+    /// <summary>Headless entry point: build both scenes, then quit the editor.</summary>
     public static void Build()
+    {
+        BuildScene();
+        EditorApplication.Exit(0);
+    }
+
+    /// <summary>Build SCN_Zone02 + SCN_VerticalSlice and register them in Build Settings
+    /// (non-exiting, so a master builder can chain more steps in the same session).</summary>
+    public static void BuildScene()
     {
         // Target zone for the gate: a WorldZoneData asset pointing at the second scene.
         var zoneAsset = AssetDatabase.LoadAssetAtPath<WorldZoneData>(ZoneAssetPath);
@@ -41,8 +76,11 @@ public static class SliceSceneBuilder
             AssetDatabase.SaveAssets();
         }
 
+        NorthStarLandManifest land = NorthStarLandManifest.Load();
+        NorthStarManifest characters = NorthStarManifest.Load();
+
         // Build the second zone first (NewScene below replaces it with the slice).
-        BuildZone02();
+        BuildZone02(land);
 
         var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
@@ -53,21 +91,32 @@ public static class SliceSceneBuilder
         sun.intensity = 1.1f;
         sunGo.transform.rotation = Quaternion.Euler(50f, 170f, 0f);
 
-        // Ground
-        var ground = GameObject.CreatePrimitive(PrimitiveType.Plane);
-        ground.name = "Ground";
-        ground.transform.localScale = new Vector3(5f, 1f, 5f);
+        // Environment: factory land pack → terrain + prop scatter + GPU-instanced grass.
+        if (land != null)
+        {
+            Terrain terrain = SliceEnvironmentBuilder.BuildTerrain(SliceTerrain, land);
+            SliceEnvironmentBuilder.ScatterProps(terrain, SliceTerrain, land, seed: 4207);
+            SliceEnvironmentBuilder.AddGrass(terrain, SliceTerrain, land, instanceCount: 6000);
+        }
+        else
+        {
+            var ground = GameObject.CreatePrimitive(PrimitiveType.Plane);
+            ground.name = "Ground (fallback — land pack missing)";
+            ground.transform.localScale = new Vector3(5f, 1f, 5f);
+        }
 
-        // GameManager + enter-Exploring bootstrap
+        // GameManager + enter-Exploring bootstrap (also announces the starting zone → music)
         var gm = new GameObject("GameManager");
         gm.AddComponent<GameManager>();
-        gm.AddComponent<SmokeBootstrap>();
+        var bootstrap = gm.AddComponent<SmokeBootstrap>();
+        SetString(bootstrap, "_initialZoneId", "zone-slice-01");
 
         // Audio service (Audio module): pooled SFX + zone-music auto-crossfade. It self-subscribes
-        // to ZoneEnteredEvent, so simply existing in the scene makes the ZoneGate trigger music.
-        // Clip sets are empty for now — the wiring is silent until SFX/music assets are registered.
+        // to ZoneEnteredEvent, so entering a zone triggers its playlist. Clips generated by
+        // Tools/generate_audio.py and registered below.
         var audioGo = new GameObject("AudioManager");
         var audioManager = audioGo.AddComponent<AudioManager>();
+        WireAudio(audioManager);
 
         // Day/Night cycle (fast time scale so the HUD clock visibly ticks in the demo)
         var dnGo = new GameObject("DayNightCycle");
@@ -85,15 +134,16 @@ public static class SliceSceneBuilder
         var cc = player.AddComponent<CharacterController>();
         cc.center = new Vector3(0f, 1f, 0f);
         cc.height = 2f;
-        // Visual: the real rigged character when the art is imported (LFS), else a capsule.
-        SkinnedMeshRenderer chestRenderer = AddRiggedCharacter(player, out Transform skeletonRoot);
-        if (chestRenderer == null)
+        // Visual: the dressed rigged character from the art pack (LFS), else a capsule.
+        CharacterCustomizer customizer = SliceCharacterRig.Attach(player, characters);
+        if (customizer == null)
         {
             var visual = GameObject.CreatePrimitive(PrimitiveType.Capsule);
             visual.name = "Visual";
             Object.DestroyImmediate(visual.GetComponent<Collider>());
             visual.transform.SetParent(player.transform, false);
             visual.transform.localPosition = new Vector3(0f, 1f, 0f);
+            customizer = player.AddComponent<CharacterCustomizer>();
         }
         var pc = player.AddComponent<PlayerController>();
         var interaction = player.AddComponent<InteractionSystem>();
@@ -114,11 +164,28 @@ public static class SliceSceneBuilder
         WireRef(pc, "_cameraTransform", camGo.transform);
         WireRef(interaction, "_inputActions", inputAsset);
 
-        // NPC (talk → save), reused from the smoke scene
+        // Footsteps: distance-based driver → Audio module surface raycast → grass step SFX
+        var footsteps = player.AddComponent<NorthStar.Audio.FootstepSystem>();
+        WireRef(footsteps, "_audioManager", audioManager);
+        WireRef(footsteps, "_rayOrigin", player.transform);
+        var footSo = new SerializedObject(footsteps);
+        SerializedProperty surfaces = footSo.FindProperty("_surfaceClips");
+        surfaces.arraySize = 2;
+        surfaces.GetArrayElementAtIndex(0).FindPropertyRelative("surface").enumValueIndex = (int)NorthStar.Audio.SurfaceType.Unknown;
+        surfaces.GetArrayElementAtIndex(0).FindPropertyRelative("clipId").stringValue = "sfx-step-grass";
+        surfaces.GetArrayElementAtIndex(1).FindPropertyRelative("surface").enumValueIndex = (int)NorthStar.Audio.SurfaceType.Grass;
+        surfaces.GetArrayElementAtIndex(1).FindPropertyRelative("clipId").stringValue = "sfx-step-grass";
+        footSo.ApplyModifiedPropertiesWithoutUndo();
+        var stepDriver = player.AddComponent<SliceFootsteps>();
+        WireRef(stepDriver, "_footsteps", footsteps);
+        WireRef(stepDriver, "_player", pc);
+
+        // NPC — Elder Vane, the quest giver. Runs the real Dialogue module (Yarn Spinner)
+        // when the package is installed; falls back to the hard-coded SmokeNPC otherwise.
         var npc = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        npc.name = "NPC";
+        npc.name = "NPC_ElderVane";
         npc.transform.position = new Vector3(-3f, 0.5f, 5f);
-        npc.AddComponent<SmokeNPC>();
+        QuestManager quests = WireDialogue(npc);
 
         // Item pickup → Inventory
         var potion = AssetDatabase.LoadAssetAtPath<ItemData>(HealthPotionPath);
@@ -131,12 +198,19 @@ public static class SliceSceneBuilder
         SetInt(pickupComp, "_quantity", 1);
         WireRef(pickupComp, "_inventory", inventory);
 
-        // Battle trigger — interacting runs a demo battle through the real Battle module
+        // Battle trigger — interacting runs a player-driven battle through the real Battle
+        // module; hero actions come from the wired AbilityData assets.
         var battle = GameObject.CreatePrimitive(PrimitiveType.Cube);
         battle.name = "BattleTrigger";
         battle.transform.position = new Vector3(0f, 0.5f, 8f);
         battle.transform.localScale = new Vector3(1f, 1f, 1f);
-        battle.AddComponent<BattleEncounter>();
+        var encounter = battle.AddComponent<BattleEncounter>();
+        WireArray(encounter, "_heroAbilities", new Object[]
+        {
+            AssetDatabase.LoadAssetAtPath<AbilityData>("Assets/_Game/ScriptableObjects/Abilities/SO_Ability_BasicAttack.asset"),
+            AssetDatabase.LoadAssetAtPath<AbilityData>("Assets/_Game/ScriptableObjects/Abilities/SO_Ability_Fireball.asset"),
+            AssetDatabase.LoadAssetAtPath<AbilityData>("Assets/_Game/ScriptableObjects/Abilities/SO_Ability_Heal.asset"),
+        });
 
         // Zone gate — a pass-through trigger that additively loads SCN_Zone02 (World module)
         var gate = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -152,34 +226,12 @@ public static class SliceSceneBuilder
         var bannerGo = new GameObject("ZoneBanner");
         bannerGo.AddComponent<ZoneBanner>();
 
-        // Character customization station (drives CharacterCustomizer on the player). When the
-        // rigged body is present, wire its Chest-slot renderer + shared skeleton so equipping the
-        // iron chestplate visibly swaps a real mesh onto the character (the meshless placeholders
-        // clear the slot, demoing equip/unequip).
-        var customizer = player.AddComponent<CharacterCustomizer>();
-        if (chestRenderer != null)
-        {
-            var custSo = new SerializedObject(customizer);
-            var rends = custSo.FindProperty("_armorRenderers");
-            rends.arraySize = 1;
-            var binding = rends.GetArrayElementAtIndex(0);
-            binding.FindPropertyRelative("slot").enumValueIndex = (int)EquipmentSlot.Chest;
-            binding.FindPropertyRelative("renderer").objectReferenceValue = chestRenderer;
-            custSo.FindProperty("_skeletonRoot").objectReferenceValue = skeletonRoot;
-            custSo.ApplyModifiedPropertiesWithoutUndo();
-        }
-        var armors = new[]
-        {
-            AssetDatabase.LoadAssetAtPath<ArmorData>(IronChestArmorPath), // real mesh — swaps onto the rig
-            AssetDatabase.LoadAssetAtPath<ArmorData>("Assets/_Game/ScriptableObjects/Armor/SO_Armor_LightChest.asset"),
-            AssetDatabase.LoadAssetAtPath<ArmorData>("Assets/_Game/ScriptableObjects/Armor/SO_Armor_MediumChest.asset"),
-            AssetDatabase.LoadAssetAtPath<ArmorData>("Assets/_Game/ScriptableObjects/Armor/SO_Armor_HeavyChest.asset"),
-        };
-        var hairs = new[]
-        {
-            AssetDatabase.LoadAssetAtPath<HairStyleData>("Assets/_Game/ScriptableObjects/Hair/SO_Hair_ShortCrop.asset"),
-            AssetDatabase.LoadAssetAtPath<HairStyleData>("Assets/_Game/ScriptableObjects/Hair/SO_Hair_LongBraid.asset"),
-        };
+        // Character customization station: the full factory wardrobe (worn + socket armor + hair).
+        var armors = LoadAll<ArmorData>(ArmorDir,
+            "SO_Armor_IronChestplate", "SO_Armor_ClothTunic", "SO_Armor_LeatherPants",
+            "SO_Armor_LeatherBoots", "SO_Armor_IronHelmet",
+            "SO_Armor_LightChest", "SO_Armor_MediumChest", "SO_Armor_HeavyChest");
+        var hairs = LoadAll<HairStyleData>(HairDir, "SO_Hair_ShortCrop", "SO_Hair_LongBraid", "SO_Hair_Spiky");
         var charStation = GameObject.CreatePrimitive(PrimitiveType.Cube);
         charStation.name = "CharacterStation";
         charStation.transform.position = new Vector3(-6f, 0.5f, 2f);
@@ -206,12 +258,13 @@ public static class SliceSceneBuilder
         WireRef(ss, "_stats", stats);
         WireArray(ss, "_forSale", shopItems);
 
-        // HUD (reads the three systems)
+        // HUD (reads the live systems)
         var hudGo = new GameObject("SliceHud");
         var hud = hudGo.AddComponent<SliceHud>();
         WireRef(hud, "_stats", stats);
         WireRef(hud, "_inventory", inventory);
         WireRef(hud, "_dayNight", dayNight);
+        if (quests != null) WireRef(hud, "_quests", quests);
 
         // SFX glue (NorthStar.Game): plays pickup/battle SFX off ItemAddedEvent/BattleStartedEvent
         // through the AudioManager above. Silent until matching clipIds are registered.
@@ -231,28 +284,42 @@ public static class SliceSceneBuilder
         };
 
         Debug.Log("[NSSetup] SLICE_SCENE_OK -> " + ScenePath);
-        EditorApplication.Exit(0);
     }
 
-    /// <summary>Builds the additively-loaded second zone (SCN_Zone02), offset from the slice.</summary>
-    private static void BuildZone02()
+    /// <summary>Builds the additively-loaded second zone (SCN_Zone02) on its own terrain bowl,
+    /// east of the slice, with the spawn point the zone gate teleports the player to.</summary>
+    private static void BuildZone02(NorthStarLandManifest land)
     {
         var s = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
-        var lightGo = new GameObject("Sun");
+        var lightGo = new GameObject("Sun (Outpost)");
         var l = lightGo.AddComponent<Light>();
         l.type = LightType.Directional;
         l.intensity = 1.1f;
         lightGo.transform.rotation = Quaternion.Euler(50f, 200f, 0f);
 
-        var ground = GameObject.CreatePrimitive(PrimitiveType.Plane);
-        ground.name = "Ground (Outpost)";
-        ground.transform.position = new Vector3(60f, 0f, 0f); // offset so it doesn't overlap the slice
-        ground.transform.localScale = new Vector3(3f, 1f, 3f);
+        if (land != null)
+        {
+            Terrain terrain = SliceEnvironmentBuilder.BuildTerrain(OutpostTerrain, land);
+            SliceEnvironmentBuilder.ScatterProps(terrain, OutpostTerrain, land, seed: 7702);
+            SliceEnvironmentBuilder.AddGrass(terrain, OutpostTerrain, land, instanceCount: 3000);
+        }
+        else
+        {
+            var ground = GameObject.CreatePrimitive(PrimitiveType.Plane);
+            ground.name = "Ground (Outpost fallback)";
+            ground.transform.position = OutpostCenter;
+            ground.transform.localScale = new Vector3(3f, 1f, 3f);
+        }
 
         var marker = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
         marker.name = "OutpostMarker";
-        marker.transform.position = new Vector3(60f, 1f, 0f);
+        marker.transform.position = OutpostCenter + new Vector3(0f, 1f, 0f);
+
+        // Where the zone gate places the player (ZoneTransition convention: SpawnPoint_[id]).
+        var spawn = new GameObject("SpawnPoint_spawn-outpost");
+        spawn.transform.position = OutpostCenter + new Vector3(-12f, 1f, 0f);
+        spawn.transform.rotation = Quaternion.LookRotation(Vector3.right); // face the marker
 
         var label = new GameObject("ZoneLabel");
         var zl = label.AddComponent<ZoneLabel>();
@@ -264,28 +331,127 @@ public static class SliceSceneBuilder
     }
 
     /// <summary>
-    /// Instantiate the rigged chibi body under the player and add an empty Chest-slot
-    /// <see cref="SkinnedMeshRenderer"/> for armor swaps. Returns that renderer (and the skeleton
-    /// root via <paramref name="skeletonRoot"/>), or <c>null</c> when the FBX isn't imported (e.g.
-    /// a clone without Git LFS) so the caller falls back to the placeholder capsule.
+    /// Wire the real dialogue stack onto the NPC: Yarn DialogueRunner + the module's
+    /// YarnDialogueRunner presenter → DialogueSystem → DialogueNPC/SliceDialogueUI, plus the
+    /// QuestManager and the dialogue→quest bridge. Returns the QuestManager (for the HUD), or
+    /// falls back to SmokeNPC (returning null) when Yarn Spinner isn't installed/imported.
     /// </summary>
-    private static SkinnedMeshRenderer AddRiggedCharacter(GameObject player, out Transform skeletonRoot)
+    private static QuestManager WireDialogue(GameObject npc)
     {
-        skeletonRoot = null;
-        var bodyAsset = AssetDatabase.LoadAssetAtPath<GameObject>(BodyFbxPath);
-        if (bodyAsset == null) return null;
+#if YARN_SPINNER
+        var project = AssetDatabase.LoadAssetAtPath<Yarn.Unity.YarnProject>("Assets/_Game/Dialogue/NorthStar.yarnproject");
+        if (project == null)
+        {
+            Debug.LogWarning("[NSSetup] Yarn project not imported — NPC falls back to SmokeNPC.");
+            npc.AddComponent<SmokeNPC>();
+            return null;
+        }
 
-        var model = (GameObject)PrefabUtility.InstantiatePrefab(bodyAsset);
-        model.name = "CharacterModel";
-        model.transform.SetParent(player.transform, false);
-        model.transform.localPosition = new Vector3(0f, -1f, 0f); // player origin = CC centre; drop feet to ground
-        model.transform.localRotation = Quaternion.identity;
-        model.transform.localScale = Vector3.one * 1.8f;          // chibi base is 1 m; scale toward the 2 m capsule
-        skeletonRoot = model.transform;
+        var rig = new GameObject("DialogueRig");
+        var yarnRunner = rig.AddComponent<Yarn.Unity.DialogueRunner>();
+        var adapter = rig.AddComponent<YarnDialogueRunner>();
+        var runnerSo = new SerializedObject(yarnRunner);
+        runnerSo.FindProperty("yarnProject").objectReferenceValue = project;
+        runnerSo.FindProperty("autoStart").boolValue = false;
+        SerializedProperty presenters = runnerSo.FindProperty("dialoguePresenters");
+        presenters.arraySize = 1;
+        presenters.GetArrayElementAtIndex(0).objectReferenceValue = adapter;
+        runnerSo.ApplyModifiedPropertiesWithoutUndo();
+        WireRef(adapter, "_runner", yarnRunner);
 
-        var chestGo = new GameObject("Armor_Chest");
-        chestGo.transform.SetParent(model.transform, false);
-        return chestGo.AddComponent<SkinnedMeshRenderer>();
+        var dialogueGo = new GameObject("DialogueSystem");
+        var dialogue = dialogueGo.AddComponent<DialogueSystem>();
+        WireRef(dialogue, "_runnerBehaviour", adapter);
+
+        var dialogueNpc = npc.AddComponent<DialogueNPC>();
+        WireRef(dialogueNpc, "_dialogue", dialogue);
+
+        var uiGo = new GameObject("SliceDialogueUI");
+        var dialogueUi = uiGo.AddComponent<SliceDialogueUI>();
+        WireRef(dialogueUi, "_dialogue", dialogue);
+
+        var questsGo = new GameObject("QuestManager");
+        var quests = questsGo.AddComponent<QuestManager>();
+        WireArray(quests, "_questDatabase", new Object[]
+        {
+            AssetDatabase.LoadAssetAtPath<QuestData>("Assets/_Game/ScriptableObjects/Quests/SO_Quest_FindTheSpark.asset"),
+            AssetDatabase.LoadAssetAtPath<QuestData>("Assets/_Game/ScriptableObjects/Quests/SO_Quest_MendTheBeacon.asset"),
+        });
+        var bridge = questsGo.AddComponent<DialogueQuestBridge>();
+        WireRef(bridge, "_quests", quests);
+        return quests;
+#else
+        npc.AddComponent<SmokeNPC>();
+        return null;
+#endif
+    }
+
+    /// <summary>
+    /// Register the generated audio pack on the AudioManager: one-shot SFX by clipId and the
+    /// per-zone music playlists (tracks assigned into the MusicPlaylist ScriptableObjects).
+    /// </summary>
+    private static void WireAudio(AudioManager audioManager)
+    {
+        var sfx = new (string clipId, string path)[]
+        {
+            ("sfx-pickup", "Assets/_Game/Audio/SFX/SFX_Pickup.wav"),
+            ("sfx-battle", "Assets/_Game/Audio/SFX/SFX_Battle.wav"),
+            ("sfx-step-grass", "Assets/_Game/Audio/SFX/SFX_Step_Grass.wav"),
+            ("sfx-ui-click", "Assets/_Game/Audio/SFX/SFX_UIClick.wav"),
+        };
+        var so = new SerializedObject(audioManager);
+        SerializedProperty clips = so.FindProperty("_sfxClips");
+        clips.arraySize = sfx.Length;
+        for (int i = 0; i < sfx.Length; i++)
+        {
+            SerializedProperty el = clips.GetArrayElementAtIndex(i);
+            el.FindPropertyRelative("clipId").stringValue = sfx[i].clipId;
+            el.FindPropertyRelative("clip").objectReferenceValue =
+                AssetDatabase.LoadAssetAtPath<AudioClip>(sfx[i].path);
+        }
+
+        MusicPlaylist forest = PopulatePlaylist(
+            "Assets/_Game/ScriptableObjects/Playlists/SO_Playlist_Forest.asset",
+            "Assets/_Game/Audio/Music/MUS_Wildwood.wav");
+        MusicPlaylist town = PopulatePlaylist(
+            "Assets/_Game/ScriptableObjects/Playlists/SO_Playlist_Town.asset",
+            "Assets/_Game/Audio/Music/MUS_Outpost.wav");
+
+        SerializedProperty zones = so.FindProperty("_zonePlaylists");
+        zones.arraySize = 2;
+        zones.GetArrayElementAtIndex(0).FindPropertyRelative("zoneId").stringValue = "zone-slice-01";
+        zones.GetArrayElementAtIndex(0).FindPropertyRelative("playlist").objectReferenceValue = forest;
+        zones.GetArrayElementAtIndex(1).FindPropertyRelative("zoneId").stringValue = "zone-slice-02";
+        zones.GetArrayElementAtIndex(1).FindPropertyRelative("playlist").objectReferenceValue = town;
+        so.ApplyModifiedPropertiesWithoutUndo();
+    }
+
+    /// <summary>Assign a generated music track into a playlist SO (idempotent).</summary>
+    private static MusicPlaylist PopulatePlaylist(string playlistPath, string clipPath)
+    {
+        var playlist = AssetDatabase.LoadAssetAtPath<MusicPlaylist>(playlistPath);
+        var clip = AssetDatabase.LoadAssetAtPath<AudioClip>(clipPath);
+        if (playlist == null)
+        {
+            Debug.LogWarning($"[NSSetup] playlist missing: {playlistPath}");
+            return null;
+        }
+        playlist.tracks = clip != null ? new[] { clip } : new AudioClip[0];
+        if (playlist.crossfadeTime <= 0f) playlist.crossfadeTime = 1.5f;
+        EditorUtility.SetDirty(playlist);
+        return playlist;
+    }
+
+    private static T[] LoadAll<T>(string dir, params string[] names) where T : Object
+    {
+        var list = new System.Collections.Generic.List<T>(names.Length);
+        foreach (string n in names)
+        {
+            var asset = AssetDatabase.LoadAssetAtPath<T>($"{dir}/{n}.asset");
+            if (asset != null) list.Add(asset);
+            else Debug.LogWarning($"[NSSetup] wardrobe asset missing: {dir}/{n}.asset");
+        }
+        return list.ToArray();
     }
 
     private static void WireRef(Object target, string field, Object value)
